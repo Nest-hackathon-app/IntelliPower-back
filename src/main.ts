@@ -4,6 +4,7 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
 import { ValidationPipe } from '@nestjs/common';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -17,6 +18,14 @@ async function bootstrap() {
     }),
   );
 
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.MQTT, // or Transport.REDIS, Transport.KAFKA, etc.
+    options: {
+      host: 'localhost',
+      port: 1883,
+    },
+  });
+  await app.startAllMicroservices();
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.enableShutdownHooks();
   process.on('SIGINT', async () => {
