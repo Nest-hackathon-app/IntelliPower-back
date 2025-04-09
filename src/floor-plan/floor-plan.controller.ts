@@ -6,7 +6,6 @@ import {
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
-import { FloorPlanService } from './floor-plan.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('floor-plan')
