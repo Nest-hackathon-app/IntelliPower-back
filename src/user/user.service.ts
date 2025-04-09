@@ -18,7 +18,10 @@ export class UsersService {
       const hashedPassword = await bcrypt.hash(user.password, 5);
       user.password = hashedPassword;
       return this.db.user.create({
-        data: user,
+        data: {
+          ...user,
+          company: { create: { name: 'Dla3' } },
+        },
       });
     } catch (error) {
       if (error instanceof PrismaClientValidationError) {

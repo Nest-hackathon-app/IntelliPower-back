@@ -1,28 +1,149 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
+// schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "postgresql" // or mysql, sqlite
   url      = env("DATABASE_URL")
 }
-model user{
-  id        String   @id @default(cuid())
+
+model user {
+  id         String    @id @default(uuid())
+  name       String
+  password   String    // Consider using encryption
+  email      String    @unique
+  companyId  String
+  role       UserRole @default(employee)
+  company    Company   @relation(fields: [companyId], references: [id])
+  entrances  Entrance[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([companyId])
+  @@index([email])
+}
+
+model Company {
+  id        String   @id @default(uuid())
   name      String
-  email     String   @unique
-  role      UserRole
-  password  String
+  floors    Floor[]
+  users     user[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model Floor {
+  id         String   @id @default(uuid())
+  name       String
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id])
+  areas      Area[]
+  cameras    Camera[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([companyId])
+}
+
+model Entrance {
+  userId    String
+  areaId    String
+  user      user     @relation(fields: [userId], references: [id])
+  area      Area     @relation(fields: [areaId], references: [id])
+  enteredAt DateTime @default(now())
+
+  @@id([userId, areaId, enteredAt]) // Composite identifier
+  @@index([areaId])
+  @@index([userId])
+}
+
+model Camera {
+  id        String   @id @default(uuid())
+  name      String
+  floorId   String
+  floor     Floor    @relation(fields: [floorId], references: [id])
+  locationX Float
+  locationY Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  areaId   String
+  @@index([floorId])
+  Area Area @relation(fields: [areaId], references: [id])
+  Areaid String
+}
+
+model Area {
+  id        String       @id @default(uuid())
+  floorId   String
+  floor     Floor        @relation(fields: [floorId], references: [id])
+  type      AreaType
+  name      String
+  polygon   Json         // Storing GeoJSON coordinates
+  capacity  Int
+  cameras   Camera[]
+  temperatures Temperature[]
+  electricities Electricity[]
+  anomalies Anomaly[]
+  entrances Entrance[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([floorId])
+  @@index([name])
+}
+
+model Temperature {
+  id        String   @id @default(uuid())
+  areaId    String
+  area      Area     @relation(fields: [areaId], references: [id])
+  temp      Float
+  createdAt DateTime @default(now())
+
+  @@index([areaId])
+  @@index([createdAt]) // Important for time-series queries
+}
+
+model Electricity {
+  id        String   @id @default(uuid())
+  areaId    String
+  area      Area     @relation(fields: [areaId], references: [id])
+  usage     Float    // in kWh
+  createdAt DateTime @default(now())
+
+  @@index([areaId])
+  @@index([createdAt]) // Important for time-series queries
+}
+
+model Anomaly {
+  id         String     @id @default(uuid())
+  areaId     String
+  area       Area       @relation(fields: [areaId], references: [id])
+  title      String
+  status     AnomalyStatus @default(active)
+  reportedAt DateTime   @default(now())
+  resolvedAt DateTime?
+
+  @@index([areaId])
+  @@index([status])
+  @@index([reportedAt])
+}
+
 enum UserRole {
-  SUPERUSER
-  ADMIN
-  EMPLOYEE
+  admin
+  employee
+}
+
+enum AreaType {
+  server_room
+  call_center
+  office
+  hallway
+  restricted
+}
+
+enum AnomalyStatus {
+  active
+  resolved
 }

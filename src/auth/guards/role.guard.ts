@@ -25,7 +25,7 @@ export class RoleGuard implements CanActivate {
     userRole: string,
     requiredRoles: UserRole[],
   ): boolean | Promise<boolean> | Observable<boolean> {
-    if (userRole === UserRole.ADMIN) {
+    if (userRole === UserRole.admin) {
       return true;
     }
     return requiredRoles.some((role) => {
