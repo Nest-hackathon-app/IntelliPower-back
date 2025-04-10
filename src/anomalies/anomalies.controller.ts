@@ -1,23 +1,27 @@
 
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
 import { AnomaliesService } from './anomalies.service';
 import { createAnomalyDto } from './dto/create-anomaly.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { jwtGuard } from 'src/auth/guards/jwt.guard';
+import { currentUser } from 'src/auth/decorators/getUser.decorator';
+import { user } from '@prisma/client';
 
+@UseGuards(jwtGuard)
 @ApiTags('Anomalies')
 @Controller('anomalies')
 export class AnomaliesController {
   constructor(private readonly anomaliesService: AnomaliesService) {}
 
-  @Get('company/:companyId')
+  @Get('company')
   @ApiOperation({ summary: 'Get all anomalies by company ID' })
   @ApiResponse({
     status: 200,
     description: 'List of anomalies',
   })
   @ApiParam({ name: 'companyId', type: String, description: 'Company ID' })
-  async getAnomaliesByCompanyId(@Param('companyId') companyId: string) {
-    return this.anomaliesService.getAnomaliesByCompanyId(companyId);
+  getAnomaliesByCompanyId(@currentUser() user: user) {
+    return this.anomaliesService.getAnomaliesOfCompany(user.companyId);
   }
 
   @Get('area/:areaId')

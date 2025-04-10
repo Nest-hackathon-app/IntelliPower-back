@@ -8,7 +8,7 @@ import {
   IsString,
 } from 'class-validator';
 
-export class GetTemperatureDto {
+export class GetGroupedDataDto{
   @IsDateString()
   @IsOptional()
   startDate?: string;

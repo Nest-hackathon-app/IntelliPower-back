@@ -6,7 +6,7 @@ import { createAnomalyDto } from './dto/create-anomaly.dto';
 @Injectable()
 export class AnomaliesService {
   constructor(private readonly prisma: PrismaService) {}
-  getAnomaliesByCompanyId(companyId: string) {
+  getAnomaliesOfCompany(companyId: string) {
     return this.prisma.anomaly.findMany({
       where: {
         area: {
@@ -50,7 +50,6 @@ export class AnomaliesService {
         status: data.anomalyStatus,
       },
     });
-      
   }
   async reportAnomalyResolved(anomalyId: string) {
     return this.prisma.anomaly.update({

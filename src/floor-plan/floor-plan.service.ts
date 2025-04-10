@@ -10,6 +10,16 @@ export class FloorPlanService {
     return this.prisma.floor.findMany({
       where: { companyId },
       orderBy: { order: 'asc' },
+      select: {
+        name: true,
+        id: true,
+        areas: {
+          select: {
+            name: true,
+            id: true,
+          },
+        },
+      },
     });
   }
   async addFloorToCompany(

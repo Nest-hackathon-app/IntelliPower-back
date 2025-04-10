@@ -41,8 +41,8 @@ export class AuthService {
     );
   }
 
-  async deleteUser(id: string) {
-    return this.userService.remove(id);
+  async deleteUser(id: string, uid: string) {
+    return this.userService.remove(id, uid);
   }
 
   async validateUser(email: string, password: string): Promise<user> {

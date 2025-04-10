@@ -7,17 +7,52 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { GetTemperatureDto } from './dto/get-temperature.dto';
+import {GetGroupedDataDto, groupBy } from './dto/get-temperature.dto';
 import { TemperatureService } from './temperature.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
+import { ApiOperation, ApiQuery } from '@nestjs/swagger';
 
 @Controller('temperature')
 export class TemperatureController {
   logger = new Logger(TemperatureController.name);
   constructor(private readonly temperatureService: TemperatureService) {}
-  @Get(':areaId')
+  @ApiOperation({ summary: 'Get temperature entries by floor' })
+  @ApiQuery({ name: 'groupBy', required: false, enum: groupBy })
+  @ApiQuery({
+    name: 'startDate',
+    type: Date,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'endDate',
+    type: Date,
+    required: false,
+  })
+  @Get('floor/:floorId')
+  getTemperatureEntriesByFloor(
+    @Query() query: GetGroupedDataDto,
+    @Param('floorId') floorId: string,
+  ) {
+    if (!query.groupBy) {
+      throw new BadRequestException('GroupBy is required');
+    }
+    return this.temperatureService.getTemperatureDataByFloor(query, floorId);
+  }
+  @ApiOperation({ summary: 'Get temperature entries' })
+  @ApiQuery({ name: 'groupBy', required: false, enum: groupBy })
+  @ApiQuery({
+    name: 'startDate',
+    type: Date,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'endDate',
+    type: Date,
+    required: false,
+  })
+  @Get('area/:areaId')
   getTemperatureEntries(
-    @Query() query: GetTemperatureDto,
+    @Query() query: GetGroupedDataDto,
     @Param('areaId') areaId: string,
   ) {
     console.log(query);
@@ -26,6 +61,7 @@ export class TemperatureController {
     }
     return this.temperatureService.getTemperatureData(query, areaId);
   }
+  
   @MessagePattern('temperature/entry')
   addTemperatureEntry(
     @Payload() data: { sensorId: string; temperature: number },

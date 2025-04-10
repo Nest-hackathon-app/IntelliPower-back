@@ -55,7 +55,6 @@ export class UsersService {
   }
   async findOne(id: string) {
     try {
-      console.log('id', id);
       const user = await this.db.user.findFirst({
         where: {
           id: id,
@@ -88,16 +87,32 @@ export class UsersService {
     }
   }
 
-  remove(id: string) {
+  async remove(id: string, uid: string) {
     try {
-      return this.db.user.delete({
+      const deleted = await this.db.user.deleteMany({
         where: {
-          id: id,
+          AND: [
+            { id: id },
+            {
+              OR: [{ role: 'employee' }, { id: uid }],
+            },
+          ],
         },
       });
+      if (deleted.count === 0) {
+        throw new HttpException('user not found', HttpStatus.NOT_FOUND);
+      }
+      return deleted;
     } catch (e) {
       throw new HttpException(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
+  async findById(id: string) {
+    return this.db.user.findUnique({
+      where: {
+        id,
+      },
+    });
   }
   async findByEmail(email: string) {
     try {

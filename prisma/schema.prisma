@@ -86,7 +86,6 @@ model Area {
   capacity  Int
   cameras   Camera[]
   temperatures Temperature[]
-  electricities Electricity[]
   anomalies Anomaly[]
   entrances Entrance[]
   createdAt DateTime     @default(now())
@@ -108,9 +107,11 @@ model sensor{
   updatedAt DateTime @updatedAt
   
   @@index([areaId])
+  Electricity Electricity[]
 }
 enum SensorType {
   TEMPERATURE
+  ELECTRICITY
  } 
 model Temperature {
   id        String   @id @default(uuid())
@@ -125,12 +126,12 @@ model Temperature {
 
 model Electricity {
   id        String   @id @default(uuid())
-  areaId    String
-  area      Area     @relation(fields: [areaId], references: [id])
-  usage     Float    // in kWh
+    power    Float 
+  voltage  Float
   createdAt DateTime @default(now())
+  sensorId String
+  sensor   sensor   @relation(fields: [sensorId], references: [id])
 
-  @@index([areaId])
   @@index([createdAt]) // Important for time-series queries
 }
 

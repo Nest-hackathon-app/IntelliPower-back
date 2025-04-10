@@ -6,12 +6,15 @@ import {
   Param,
   Post,
   Sse,
+  UseGuards,
 } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { NotificationsSseService } from './notifications-sse.service';
 import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { createNotificationDto } from './dto/notification.dto';
-import { Notification } from '@prisma/client';
+import { Notification, user } from '@prisma/client';
+import { jwtGuard } from 'src/auth/guards/jwt.guard';
+import { currentUser } from 'src/auth/decorators/getUser.decorator';
 
 @Controller('notifications')
 export class NotificationsController {
@@ -19,18 +22,18 @@ export class NotificationsController {
     private readonly notificationsService: NotificationsService,
     private readonly sseServices: NotificationsSseService,
   ) {}
-  @Sse(':userId')
-  getNotifications(@Param('userId') userId: string) {
-    const stream = this.sseServices.getStream(userId);
+  @UseGuards(jwtGuard)
+  @Sse()
+  getNotifications(@currentUser() user: user) {
+    const stream = this.sseServices.getStream(user.id);
     return stream;
   }
   @Post(':userId')
-  sendNotification(@Param('userId') userId: string, @Body() data: Notification) {
-    this.sseServices.sendToClient(userId, {
-      data: 'Hello from server',
-      type: 'Message',
-    });
-    return { message: 'Notification sent' };
+  sendNotification(
+    @Param('userId') userId: string,
+    @Body() data: Notification,
+  ) {
+    return this.notificationsService.addNotification(userId, data);
   }
 
   @Get(':userId')

@@ -11,11 +11,13 @@ export class NotificationsService {
     private readonly prisma: PrismaService,
   ) {}
 
-  addNotification(userId: string, notification: createNotificationDto) {
-    const noty = this.prisma.notification.create({
+  async addNotification(userId: string, notification: createNotificationDto) {
+    const noty = await this.prisma.notification.create({
       data: {
         ...notification,
-        userId,
+        users: {
+          connect: { id: userId },
+        },
       },
     });
     this.sseService.sendToClient(userId, {
@@ -26,7 +28,7 @@ export class NotificationsService {
 
   getNotifications(userId: string): Promise<Notification[]> {
     return this.prisma.notification.findMany({
-      where: { userId },
+      where: { users: { some: { id: userId } } },
     });
   }
 
@@ -34,7 +36,11 @@ export class NotificationsService {
     return this.prisma.notification.delete({
       where: {
         id: notificationId,
-        userId,
+        users: {
+          some: {
+            id: userId,
+          },
+        },
       },
     });
   }

@@ -1,4 +1,11 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { localGuard } from './guards/local.guard';
 import { currentUser } from './decorators/getUser.decorator';
 import { user } from '@prisma/client';
@@ -10,6 +17,9 @@ import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { loginReqDto } from './dto/login.req.dto';
 import { LoginResDto } from './dto/login.res.dto';
 import { jwtGuard } from './guards/jwt.guard';
+import { Roles } from './decorators/userRole.decorator';
+import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import { RoleGuard } from './guards/role.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -43,5 +53,34 @@ export class AuthController {
   @ApiResponse({ status: 404, description: 'User not found' })
   refreshToken(@Body() body: RefreshTokenDto): refreshToken {
     return this.authServices.validateRefreshToken(body.refreshToken);
+  }
+  @UseGuards(jwtGuard, RoleGuard)
+  @Roles('admin')
+  @Post('register')
+  @ApiOperation({ summary: 'Register a new user' })
+  @ApiBody({ type: CreateUserDto })
+  @ApiResponse({
+    status: 201,
+    description: 'User registered successfully',
+    type: LoginResDto,
+  })
+  @ApiResponse({ status: 400, description: 'User already exists' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  async register(@Body() user: CreateUserDto): Promise<LoginResDto> {
+    return this.authServices.register(user);
+  }
+  @UseGuards(jwtGuard)
+  @Roles('admin')
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete a user' })
+  @ApiResponse({
+    status: 200,
+    description: 'User deleted successfully',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  deleteUser(@currentUser() user: user, @Param('id') id: string) {
+    return this.authServices.deleteUser(id, user.id);
   }
 }

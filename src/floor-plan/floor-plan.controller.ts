@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { FloorPlanService } from './floor-plan.service';
-import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { CreateFloorDto } from './dto/create-floor.dto';
 import { AreaResponseDto } from './dto/floor-response.dto';
 import { Roles } from 'src/auth/decorators/userRole.decorator';
@@ -13,11 +13,13 @@ import { user } from '@prisma/client';
 @Controller('floor-plan')
 export class FloorPlanController {
   constructor(private readonly floorService: FloorPlanService) {}
-  @ApiOperation({ summary: 'Get company Floors' })
+  @ApiOperation({ summary: 'Get company Floors and their areas' })
+  @ApiBearerAuth()
   @Get()
   async getCompanyFloorPlans(@currentUser() usr: user) {
     return this.floorService.getCompanyFloorPlans(usr.companyId);
   }
+
   @Roles('admin')
   @ApiOperation({ summary: 'Add Floor to company' })
   @Post()

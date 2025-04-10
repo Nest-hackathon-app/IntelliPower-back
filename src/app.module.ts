@@ -11,6 +11,10 @@ import { FloorPlanModule } from './floor-plan/floor-plan.module';
 import { ConsumtionModule } from './consumtion/consumtion.module';
 import { JwtModule } from '@nestjs/jwt';
 import { AnomaliesModule } from './anomalies/anomalies.module';
+import { FanControlModule } from './fan-control/fan-control.module';
+import { WsSocketManagerModule } from './ws-socket-manager/ws-socket-manager.module';
+import { APP_GUARD, Reflector } from '@nestjs/core';
+import { RoleGuard } from './auth/guards/role.guard';
 
 @Module({
   imports: [
@@ -22,8 +26,10 @@ import { AnomaliesModule } from './anomalies/anomalies.module';
     NotificationsModule,
     ConsumtionModule,
     AnomaliesModule,
+    FanControlModule,
+    WsSocketManagerModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, Reflector],
 })
 export class AppModule {}

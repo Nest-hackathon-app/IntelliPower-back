@@ -1,18 +1,33 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/db/prisma.service';
-import { GetTemperatureDto, GROUPBY } from './dto/get-temperature.dto';
-import { Temperature } from '@prisma/client';
+import {  GetGroupedDataDto, GROUPBY } from './dto/get-temperature.dto';
 import { ClientProxy } from '@nestjs/microservices';
+import { groupByDate } from 'src/utils/group-data.util';
 
 // Define a type for the grouped data
-interface GroupedTemperatureData {
-  temperatures: Temperature[];
+export interface GroupedData<T> {
+  content: T[];
   sum: number;
   count: number;
 }
 
 @Injectable()
 export class TemperatureService {
+  async getTemperatureDataByFloor(query: GetGroupedDataDto, floorId: string) {
+    const { startDate, endDate, groupBy } = query;
+    const temperature = await this.prisma.temperature.findMany({
+      where: {
+        area: {
+          floorId,
+        },
+        createdAt: {
+          lte: endDate,
+          gte: startDate,
+        },
+      },
+    });
+    return groupByDate(temperature, groupBy, 'temp');
+  }
   constructor(
     private readonly prisma: PrismaService,
     @Inject('ALERT_SERVICE') private readonly alertService: ClientProxy,
@@ -40,7 +55,7 @@ export class TemperatureService {
       },
     });
   }
-  async getTemperatureData(query: GetTemperatureDto, areaId: string) {
+  async getTemperatureData(query: GetGroupedDataDto, areaId: string) {
     const { startDate, endDate, groupBy } = query;
     const temperature = await this.prisma.temperature.findMany({
       where: {
@@ -51,59 +66,10 @@ export class TemperatureService {
         },
       },
     });
-    const groupedData = this.groupByDate(temperature, groupBy);
+    const groupedData = groupByDate(temperature, groupBy, 'temp');
+
     return groupedData;
   }
 
   // This function groups temperatures by day, week, or month and returns the averages
-  groupByDate(temperature: Temperature[], groupBy: GROUPBY) {
-    const grouped = temperature.reduce<Record<string, GroupedTemperatureData>>(
-      (acc, curr) => {
-        const date = new Date(curr.createdAt);
-        let key: string;
-        switch (groupBy) {
-          case 'day':
-            key = date.toISOString().split('T')[0];
-            break;
-          case 'week': {
-            const weekStart = new Date(
-              date.setDate(date.getDate() - date.getDay()),
-            );
-            key = weekStart.toISOString().split('T')[0];
-            break;
-          }
-          case 'month': {
-            console.log(date.getMonth());
-            const month = new Date(date.getFullYear(), date.getMonth(), 1);
-            key = month.toISOString().split('T')[0];
-            break;
-          }
-          default:
-            key = '';
-        }
-
-        if (!acc[key]) {
-          acc[key] = { temperatures: [], sum: 0, count: 0 };
-        }
-
-        // Accumulate sum and count
-        acc[key].temperatures.push(curr);
-        acc[key].sum += curr.temp;
-        acc[key].count++;
-
-        return acc;
-      },
-      {}, // Initialize as an empty object
-    );
-
-    // Now calculate the averages for each group and return
-    const result = Object.keys(grouped).map((key) => {
-      const group = grouped[key];
-      const average = group.sum / group.count;
-      return { key, average, temperatures: group.temperatures };
-    });
-    //TODO:get prediction from the ML model
-    const predictedRes = result;
-    return { actualRes: result, predicted: predictedRes };
-  }
 }
