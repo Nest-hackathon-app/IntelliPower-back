@@ -22,6 +22,7 @@ model user {
 
   @@index([companyId])
   @@index([email])
+  Notification Notification[]
 }
 
 model Company {
@@ -81,7 +82,7 @@ model Area {
   floor     Floor        @relation(fields: [floorId], references: [id])
   type      AreaType
   name      String
-  polygon   Json         // Storing GeoJSON coordinates
+  polygon   Json[]         // Storing GeoJSON coordinates
   capacity  Int
   cameras   Camera[]
   temperatures Temperature[]
@@ -93,8 +94,24 @@ model Area {
 
   @@index([floorId])
   @@index([name])
+  sensor sensor[]
 }
-
+model sensor{
+  id        String   @id @default(uuid())
+  name      String
+  areaId    String
+  area      Area     @relation(fields: [areaId], references: [id])
+  locationX Float
+  locationY Float
+  type SensorType
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([areaId])
+}
+enum SensorType {
+ temperature
+ } 
 model Temperature {
   id        String   @id @default(uuid())
   areaId    String
@@ -147,4 +164,47 @@ enum AreaType {
 enum AnomalyStatus {
   active
   resolved
+}
+model Notification {
+  id          String      @id @default(uuid())
+  type        NotificationType
+  priority    NotificationPriority @default(medium)
+  title       String
+  message     String
+  read        Boolean     @default(false)
+  userId      String      // Recipient
+  user        user @relation(fields: [userId], references: [id])
+  relatedEntityType RelatedEntityType?
+  relatedEntityId String?  // Polymorphic relation ID
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+}
+
+enum NotificationType {
+  SECURITY_ALERT
+  TEMPERATURE_ALERT
+  POWER_USAGE_ALERT
+  SYSTEM_ALERT
+  MAINTENANCE_NOTICE
+  ACCESS_REQUEST
+  ANOMALY_DETECTED
+}
+
+enum NotificationPriority {
+  low
+  medium
+  high
+  critical
+}
+
+enum RelatedEntityType {
+  AREA
+  CAMERA
+  TEMPERATURE
+  ELECTRICITY
+  ANOMALY
 }

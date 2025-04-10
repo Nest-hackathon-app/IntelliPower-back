@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/db/prisma.service';
 import { CreateFloorDto } from './dto/create-floor.dto';
+import { AreaResponseDto, FloorResponseDto } from './dto/floor-response.dto';
 
 @Injectable()
 export class FloorPlanService {
@@ -11,7 +12,10 @@ export class FloorPlanService {
       orderBy: { order: 'asc' },
     });
   }
-  async addFloorToCompany(data: CreateFloorDto, companyId: string) {
+  async addFloorToCompany(
+    data: CreateFloorDto,
+    companyId: string,
+  ): Promise<FloorResponseDto> {
     // Check if the floor already exists for the companyId
     const existingFloor = await this.prisma.floor.findFirst({
       where: {
@@ -39,12 +43,13 @@ export class FloorPlanService {
       },
     });
   }
-  async getFloorAreas(floorId: string) {
-    return this.prisma.floor.findUnique({
+  async getFloorAreas(floorId: string): Promise<AreaResponseDto[] | undefined> {
+    const floorArease = await this.prisma.floor.findUnique({
       where: { id: floorId },
-      include: {
+      select: {
         areas: true,
       },
     });
+    return floorArease?.areas;
   }
 }
