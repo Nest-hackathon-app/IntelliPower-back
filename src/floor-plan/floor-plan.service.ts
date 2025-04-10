@@ -1,12 +1,43 @@
-import { Injectable } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+import { HttpException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/db/prisma.service';
 import { CreateFloorDto } from './dto/create-floor.dto';
 import { AreaResponseDto, FloorResponseDto } from './dto/floor-response.dto';
-
+import { HttpService } from '@nestjs/axios';
+import * as FormData from 'form-data';
+import { tap } from 'rxjs';
+export interface AiReturnResponse {
+  output: string;
+}
 @Injectable()
 export class FloorPlanService {
-  constructor(private readonly prisma: PrismaService) {}
-  async getCompanyFloorPlans(companyId: string) {
+  constructor(
+    private readonly http: HttpService,
+    private readonly prisma: PrismaService,
+  ) {}
+  async getFloorPlan(file: Express.Multer.File) {
+    console.log('Processing file with AIIIII:', file);
+    for (let i = 0; i < 1000000000; i++) {
+      // Simulate some processing
+    }
+    const form = new FormData();
+    form.append('file', file.buffer, {
+      filename: file.originalname,
+      contentType: file.mimetype,
+    });
+
+    const response = await this.http.axiosRef.post<AiReturnResponse>(
+      'https://mn2r.app.n8n.cloud/webhook-test/2b3f812a-2f07-436b-abb9-f3d16e6c6a06',
+      form,
+      {
+        headers: {
+          ...form.getHeaders(),
+        },
+      },
+    );
+    return this.jsonPipeLine(response.data.output);
+  }
+  getCompanyFloorPlans(companyId: string) {
     return this.prisma.floor.findMany({
       where: { companyId },
       orderBy: { order: 'asc' },
@@ -71,4 +102,11 @@ export class FloorPlanService {
       },
     });
   }
+  jsonPipeLine(json: string) {
+    const cleanedText = json.replace(/^```json\s*/i, '').replace(/```$/, '');
+
+    return JSON.parse(cleanedText);
+  }
+ 
+
 }

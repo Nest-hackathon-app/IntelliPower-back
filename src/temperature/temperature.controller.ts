@@ -7,10 +7,12 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import {GetGroupedDataDto, groupBy } from './dto/get-temperature.dto';
-import { TemperatureService } from './temperature.service';
+import { GetGroupedDataDto, groupBy } from './dto/get-temperature.dto';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { GetPeriodDataDto } from './dto/get-temperature-period.dto';
+import { TemperatureService } from './temperature.service';
+import { GetConsumptionLastDto } from 'src/consumtion/dto/get-consumtion-last.dto';
 
 @Controller('temperature')
 export class TemperatureController {
@@ -61,7 +63,7 @@ export class TemperatureController {
     }
     return this.temperatureService.getTemperatureData(query, areaId);
   }
-  
+
   @MessagePattern('temperature/entry')
   addTemperatureEntry(
     @Payload() data: { sensorId: string; temperature: number },
@@ -82,5 +84,35 @@ export class TemperatureController {
   alertSensor() {
     console.log('Alert Sensor');
     this.temperatureService.alertSensor();
+  }
+  @ApiOperation({ summary: 'Get temperature entries per floor last Period' })
+  @ApiQuery({
+    enum: ['DAY', 'WEEK', 'MONTH'],
+  })
+  @ApiParam({ name: 'floorId', type: 'string' })
+  @Get('period/floor/:floorId')
+  getTemperatureEntriesPerFloor(
+    @Param('floorId') floorId: string,
+    @Query() query: GetConsumptionLastDto,
+  ) {
+    return this.temperatureService.getTemperatureEntriesByLastPeridoFloor(
+      floorId,
+      query,
+    );
+  }
+  @ApiOperation({ summary: 'Get temperature entries per area last Period' })
+  @ApiQuery({
+    enum: ['DAY', 'WEEK', 'MONTH'],
+  })
+  @ApiParam({ name: 'areaId', type: 'string' })
+  @Get('period/area/:areaId')
+  getTemperatureEntriesPerArea(
+    @Param('areaId') areaId: string,
+    @Query() query: GetConsumptionLastDto,
+  ) {
+    return this.temperatureService.getTemperatureEntriesByLastPeriodArea(
+      areaId,
+      query,
+    );
   }
 }

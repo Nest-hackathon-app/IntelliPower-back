@@ -85,7 +85,6 @@ model Area {
   polygon   Json[]         // Storing GeoJSON coordinates
   capacity  Int
   cameras   Camera[]
-  temperatures Temperature[]
   anomalies Anomaly[]
   entrances Entrance[]
   createdAt DateTime     @default(now())
@@ -102,12 +101,13 @@ model sensor{
   area      Area     @relation(fields: [areaId], references: [id])
   locationX Float
   locationY Float
-  type SensorType
+  type SensorType 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
   @@index([areaId])
   Electricity Electricity[]
+  Temperature Temperature[]
 }
 enum SensorType {
   TEMPERATURE
@@ -115,12 +115,13 @@ enum SensorType {
  } 
 model Temperature {
   id        String   @id @default(uuid())
-  areaId    String
-  area      Area     @relation(fields: [areaId], references: [id])
+  sensorId String
+  sensor   sensor   @relation(fields: [sensorId], references: [id])
   temp      Float
+  humidity Float  
   createdAt DateTime @default(now())
 
-  @@index([areaId])
+  @@index([sensorId])
   @@index([createdAt]) // Important for time-series queries
 }
 

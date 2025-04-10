@@ -1,13 +1,28 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { FloorPlanService } from './floor-plan.service';
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { CreateFloorDto } from './dto/create-floor.dto';
 import { AreaResponseDto } from './dto/floor-response.dto';
 import { Roles } from 'src/auth/decorators/userRole.decorator';
 import { jwtGuard } from 'src/auth/guards/jwt.guard';
-import { RoleGuard } from 'src/auth/guards/role.guard';
 import { currentUser } from 'src/auth/decorators/getUser.decorator';
 import { user } from '@prisma/client';
+import { ExpressAdapter, FileInterceptor } from '@nestjs/platform-express';
 
 @UseGuards(jwtGuard)
 @Controller('floor-plan')
@@ -40,5 +55,17 @@ export class FloorPlanController {
   @Get('area/:areaId')
   getArea(@Param('areaId') areaId: string) {
     return this.floorService.getArea(areaId);
+  }
+  @Roles('admin')
+  @UseInterceptors(FileInterceptor('plan'))
+  @Patch('plan/:floorId')
+  @ApiOperation({ summary: 'Upload Floor Plan' })
+  @ApiParam({ name: 'floorId', type: 'string' })
+  @ApiResponse({
+    status: 200,
+    description: 'Floor Plan',
+  })
+  getFloorPlan(@UploadedFile() file: Express.Multer.File) {
+    return this.floorService.getFloorPlan(file);
   }
 }

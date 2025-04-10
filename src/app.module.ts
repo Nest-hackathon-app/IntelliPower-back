@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -15,6 +15,7 @@ import { FanControlModule } from './fan-control/fan-control.module';
 import { WsSocketManagerModule } from './ws-socket-manager/ws-socket-manager.module';
 import { APP_GUARD, Reflector } from '@nestjs/core';
 import { RoleGuard } from './auth/guards/role.guard';
+import { FaceRecoModule } from './face-reco/face-reco.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { RoleGuard } from './auth/guards/role.guard';
     AnomaliesModule,
     FanControlModule,
     WsSocketManagerModule,
+    FaceRecoModule,
   ],
   controllers: [AppController],
   providers: [AppService, Reflector],

@@ -4,9 +4,89 @@ import { UpdateConsumtionDto } from './dto/update-consumtion.dto';
 import { PrismaService } from 'src/db/prisma.service';
 import { groupByDate } from 'src/utils/group-data.util';
 import { GetGroupedDataDto } from 'src/temperature/dto/get-temperature.dto';
-
+import { GetPeriodDataDto } from 'src/temperature/dto/get-temperature-period.dto';
+import { GetConsumptionLastDto } from './dto/get-consumtion-last.dto';
 @Injectable()
 export class ConsumtionService {
+  constructor(private readonly prisma: PrismaService) {}
+  async getEntriesOfLastPeriodOfArea(
+    areaId: string,
+    data: GetConsumptionLastDto,
+  ) {
+    const now = new Date();
+    const fallBackDate = new Date();
+    switch (data.type) {
+      case 'DAY':
+        fallBackDate.setDate(now.getDate() - 1);
+        break;
+      case 'WEEK':
+        fallBackDate.setDate(now.getDate() - 7);
+        break;
+      case 'MONTH':
+        fallBackDate.setMonth(now.getMonth() - 1);
+    }
+    return this.prisma.electricity.findMany({
+      where: {
+        AND: {
+          sensor: {
+            areaId,
+          },
+          createdAt: {
+            gte: fallBackDate,
+            lte: now,
+          },
+        },
+      },
+    });
+  }
+  async getEntriesOfLastPeriodOfFloor(
+    floorId: string,
+    data: GetConsumptionLastDto,
+  ) {
+    const now = new Date();
+    const fallBackDate = new Date();
+    switch (data.type) {
+      case 'DAY':
+        fallBackDate.setDate(now.getDate() - 1);
+        break;
+      case 'WEEK':
+        fallBackDate.setDate(now.getDate() - 7);
+        break;
+      case 'MONTH':
+        fallBackDate.setMonth(now.getMonth() - 1);
+    }
+    const floor = await this.prisma.floor.findFirst({
+      where: {
+        id: floorId,
+      },
+      select: {
+        id: true,
+        areas: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+    if (!floor) {
+      throw new Error('Floor not found');
+    }
+    return this.prisma.electricity.findMany({
+      where: {
+        AND: {
+          sensor: {
+            areaId: {
+              in: floor.areas.map((area) => area.id),
+            },
+          },
+          createdAt: {
+            gte: fallBackDate,
+            lte: now,
+          },
+        },
+      },
+    });
+  }
   async getFloorEntries(floorId: string, query: GetGroupedDataDto) {
     const { startDate, endDate, groupBy } = query;
     const res = await this.prisma.electricity.findMany({
@@ -20,10 +100,10 @@ export class ConsumtionService {
         },
       },
     });
-     const groupedData = groupByDate(res, groupBy, 'voltage');
+    const groupedData = groupByDate(res, groupBy, 'voltage');
     return groupedData;
   }
-  constructor(private readonly prisma: PrismaService) {}
+
   create(createConsumtionDto: CreateConsumtionDto) {
     return this.prisma.electricity.create({
       data: {
@@ -34,6 +114,22 @@ export class ConsumtionService {
     });
   }
 
+  async getEntriesByArea(areaId: string, query: GetPeriodDataDto) {
+    return this.prisma.electricity.findMany({
+      where: {
+        sensor: {
+          areaId,
+        },
+        createdAt: {
+          lte: query.endDate,
+          gte: query.startDate,
+        },
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+  }
   async groupEntriesByPeriod(areaId: string, query: GetGroupedDataDto) {
     const { startDate, endDate, groupBy } = query;
     const consumtion = await this.prisma.electricity.findMany({
@@ -48,6 +144,22 @@ export class ConsumtionService {
       },
     });
     return groupByDate(consumtion, groupBy, 'voltage');
+  }
+  getEntriesPeriodPerFloor(floorId: string, startDate: Date, endDate: Date) {
+    return this.prisma.electricity.findMany({
+      where: {
+        sensor: {
+          area: { floorId },
+        },
+        createdAt: {
+          lte: endDate,
+          gte: startDate,
+        },
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
   }
   findAll() {
     return `This action returns all consumtion`;

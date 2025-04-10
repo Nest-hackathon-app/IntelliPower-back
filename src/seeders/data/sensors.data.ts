@@ -1,6 +1,6 @@
 import { SensorType } from '@prisma/client';
 import { IsensorSeeder } from '../interfrace/sensor.interface';
-const areaId = '4c717665-606c-451b-83cb-269fab8ab1d4';
+const areaId = '15bd8822-cce9-497d-8b0d-d5e6f4955d51';
 export const sensorsData: IsensorSeeder[] = [
   {
     id: 'sensor-1',
@@ -25,5 +25,21 @@ export const sensorsData: IsensorSeeder[] = [
     locationX: 50,
     locationY: 60,
     type: SensorType.TEMPERATURE,
+  },
+  {
+    id: 'Load1',
+    name: 'consumption Sensor',
+    areaId,
+    locationX: 10,
+    locationY: 20,
+    type: SensorType.ELECTRICITY,
+  },
+  {
+    id: 'Load2',
+    name: 'consumption Sensor',
+    areaId,
+    locationX: 30,
+    locationY: 40,
+    type: SensorType.ELECTRICITY,
   },
 ];

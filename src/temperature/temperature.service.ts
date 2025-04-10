@@ -1,8 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/db/prisma.service';
-import {  GetGroupedDataDto, GROUPBY } from './dto/get-temperature.dto';
+import { GetGroupedDataDto, GROUPBY } from './dto/get-temperature.dto';
 import { ClientProxy } from '@nestjs/microservices';
 import { groupByDate } from 'src/utils/group-data.util';
+import { GetConsumptionLastDto } from 'src/consumtion/dto/get-consumtion-last.dto';
 
 // Define a type for the grouped data
 export interface GroupedData<T> {
@@ -17,8 +18,10 @@ export class TemperatureService {
     const { startDate, endDate, groupBy } = query;
     const temperature = await this.prisma.temperature.findMany({
       where: {
-        area: {
-          floorId,
+        sensor: {
+          area: {
+            floorId,
+          },
         },
         createdAt: {
           lte: endDate,
@@ -51,7 +54,27 @@ export class TemperatureService {
     return this.prisma.temperature.create({
       data: {
         temp: temperature,
-        areaId,
+        sensor: {
+          connect: {
+            id: sensorId,
+          },
+        },
+      },
+    });
+  }
+  async getEntriesByArea(areaId: string, query: GetGroupedDataDto) {
+    return this.prisma.temperature.findMany({
+      where: {
+        sensor: {
+          areaId,
+        },
+        createdAt: {
+          lte: query.endDate,
+          gte: query.startDate,
+        },
+      },
+      orderBy: {
+        createdAt: 'asc',
       },
     });
   }
@@ -59,7 +82,9 @@ export class TemperatureService {
     const { startDate, endDate, groupBy } = query;
     const temperature = await this.prisma.temperature.findMany({
       where: {
-        areaId,
+        sensor: {
+          areaId,
+        },
         createdAt: {
           lte: endDate,
           gte: startDate,
@@ -70,6 +95,98 @@ export class TemperatureService {
 
     return groupedData;
   }
+  async getTempertureEntriesPerFloor(
+    floorId: string,
+    startDate: Date,
+    endDate: Date,
+  ) {
+    const temperature = await this.prisma.temperature.findMany({
+      where: {
+        sensor: {
+          area: {
+            floorId,
+          },
+        },
+        createdAt: {
+          lte: endDate,
+          gte: startDate,
+        },
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
 
-  // This function groups temperatures by day, week, or month and returns the averages
+    return temperature;
+  }
+  async getTemperatureEntriesByLastPeridoFloor(
+    floorId: string,
+    period: GetConsumptionLastDto,
+  ) {
+    const startDate = new Date();
+    const fallback = new Date();
+    switch (period.type) {
+      case 'DAY':
+        startDate.setDate(startDate.getDate() - 1);
+        break;
+      case 'WEEK':
+        startDate.setDate(startDate.getDate() - 7);
+        break;
+      case 'MONTH':
+        startDate.setMonth(startDate.getMonth() - 1);
+        break;
+    }
+    const temperature = await this.prisma.temperature.findMany({
+      where: {
+        sensor: {
+          area: {
+            floorId,
+          },
+        },
+        createdAt: {
+          gte: fallback,
+          lte: startDate,
+        },
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+
+    return temperature;
+  }
+  async getTemperatureEntriesByLastPeriodArea(
+    areaId: string,
+    period: GetConsumptionLastDto,
+  ) {
+    const startDate = new Date();
+    const fallback = new Date();
+    switch (period.type) {
+      case 'DAY':
+        startDate.setDate(startDate.getDate() - 1);
+        break;
+      case 'WEEK':
+        startDate.setDate(startDate.getDate() - 7);
+        break;
+      case 'MONTH':
+        startDate.setMonth(startDate.getMonth() - 1);
+        break;
+    }
+    const temperature = await this.prisma.temperature.findMany({
+      where: {
+        sensor: {
+          areaId,
+        },
+        createdAt: {
+          gte: fallback,
+          lte: startDate,
+        },
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+
+    return temperature;
+  }
 }
