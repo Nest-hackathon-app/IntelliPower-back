@@ -30,7 +30,7 @@ export class TemperatureService {
       select: { area: { select: { id: true } } },
     });
     if (!room) {
-      throw new Error('Room not found');
+      throw new Error('Room not found , sensorId: ' + sensorId);
     }
     const areaId = room.area.id;
     return this.prisma.temperature.create({
@@ -61,7 +61,6 @@ export class TemperatureService {
       (acc, curr) => {
         const date = new Date(curr.createdAt);
         let key: string;
-
         switch (groupBy) {
           case 'day':
             key = date.toISOString().split('T')[0];
@@ -74,7 +73,8 @@ export class TemperatureService {
             break;
           }
           case 'month': {
-            const month = new Date(date.getFullYear(), date.getMonth());
+            console.log(date.getMonth());
+            const month = new Date(date.getFullYear(), date.getMonth(), 1);
             key = month.toISOString().split('T')[0];
             break;
           }
@@ -102,7 +102,8 @@ export class TemperatureService {
       const average = group.sum / group.count;
       return { key, average, temperatures: group.temperatures };
     });
-
-    return result;
+    //TODO:get prediction from the ML model
+    const predictedRes = result;
+    return { actualRes: result, predicted: predictedRes };
   }
 }

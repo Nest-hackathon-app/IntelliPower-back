@@ -17,10 +17,10 @@ export class FloorPlanService {
     companyId: string,
   ): Promise<FloorResponseDto> {
     // Check if the floor already exists for the companyId
+
     const existingFloor = await this.prisma.floor.findFirst({
       where: {
-        companyId,
-        name: data.name,
+        order: data.order,
       },
     });
     //if it does exist increment the all the above its order by 1
@@ -51,5 +51,14 @@ export class FloorPlanService {
       },
     });
     return floorArease?.areas;
+  }
+  async getArea(areaId: string) {
+    return this.prisma.area.findUnique({
+      where: { id: areaId },
+      include: {
+        cameras: true,
+        sensor: true,
+      },
+    });
   }
 }

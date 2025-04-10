@@ -7,6 +7,10 @@ import { PrismaModule } from './db/prisma.module';
 import { TemperatureModule } from './temperature/temperature.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { FloorPlanModule } from './floor-plan/floor-plan.module';
+import { ConsumtionModule } from './consumtion/consumtion.module';
+import { JwtModule } from '@nestjs/jwt';
+import { AnomaliesModule } from './anomalies/anomalies.module';
 
 @Module({
   imports: [
@@ -14,8 +18,11 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
     UserModule,
     PrismaModule,
     TemperatureModule,
+    FloorPlanModule,
     NotificationsModule,
-     ],
+    ConsumtionModule,
+    AnomaliesModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

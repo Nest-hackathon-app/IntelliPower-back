@@ -9,6 +9,8 @@ import { jwtStrategy } from './strategies/jwt.startegy';
 import { UserModule } from 'src/user/user.module';
 import { AuthController } from './auth.controller';
 import { UsersService } from 'src/user/user.service';
+import { jwtGuard } from './guards/jwt.guard';
+import { RoleGuard } from './guards/role.guard';
 
 @Module({
   imports: [UserModule, PassportModule, JwtModule, ConfigModule.forRoot()],
@@ -19,6 +21,9 @@ import { UsersService } from 'src/user/user.service';
     LocalStrategy,
     jwtStrategy,
     UsersService,
+    jwtGuard,
+    RoleGuard
   ],
+  exports: [RoleGuard, jwtGuard],
 })
 export class AuthModule {}

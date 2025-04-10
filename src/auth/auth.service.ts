@@ -56,17 +56,19 @@ export class AuthService {
     }
     return user;
   }
-  login(user: user): LoginResDto {
+  async login(user: user): Promise<LoginResDto> {
     const payload = { id: user.id };
-    const accessToken = this.jwtModule.sign(payload, {
-      secret: this.configService.get('ACCESS_TOKEN_SECRET'),
-      expiresIn: this.configService.get('ACCESS_TOKEN_EXPIRES_IN'),
-    });
-    const refreshToken = this.jwtModule.sign(payload, {
-      expiresIn: this.configService.get('REFRESH_TOKEN_EXPIRES_IN'),
-      secret: this.configService.get('REFRESH_TOKEN_SECRET'),
-    });
-    //eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtModule.signAsync(payload, {
+        secret: this.configService.get('ACCESS_TOKEN_SECRET'),
+        expiresIn: this.configService.get('ACCESS_TOKEN_EXPIRES_IN'),
+      }),
+      this.jwtModule.signAsync(payload, {
+        expiresIn: this.configService.get('REFRESH_TOKEN_EXPIRES_IN'),
+        secret: this.configService.get('REFRESH_TOKEN_SECRET'),
+      }),
+    ]);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...result } = user;
     return {
       accessToken: accessToken,

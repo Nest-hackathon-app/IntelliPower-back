@@ -1,7 +1,10 @@
 import { SensorType } from '@prisma/client';
 
 export interface IsensorSeeder {
-  idd: string;
-  sensorName: string;
-  sensorType: SensorType;
+  id: string;
+  name: string;
+  areaId: string;
+  locationX: number;
+  locationY: number;
+  type: SensorType;
 }

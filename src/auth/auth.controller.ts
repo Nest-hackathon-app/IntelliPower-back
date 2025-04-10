@@ -9,6 +9,7 @@ import { refreshToken } from './dto/refreshToken.dto';
 import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { loginReqDto } from './dto/login.req.dto';
 import { LoginResDto } from './dto/login.res.dto';
+import { jwtGuard } from './guards/jwt.guard';
 
 @Controller('auth')
 export class AuthController {

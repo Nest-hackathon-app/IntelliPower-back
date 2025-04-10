@@ -9,6 +9,7 @@ import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     cors: { origin: '*' },
+    logger: ['error', 'warn', 'log'],
   });
   const config = new DocumentBuilder().setTitle('BACKEND API DOCS').build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);

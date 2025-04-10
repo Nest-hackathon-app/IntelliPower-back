@@ -110,7 +110,7 @@ model sensor{
   @@index([areaId])
 }
 enum SensorType {
- temperature
+  TEMPERATURE
  } 
 model Temperature {
   id        String   @id @default(uuid())
@@ -172,14 +172,12 @@ model Notification {
   title       String
   message     String
   read        Boolean     @default(false)
-  userId      String      // Recipient
-  user        user @relation(fields: [userId], references: [id])
+  users       user[] 
   relatedEntityType RelatedEntityType?
   relatedEntityId String?  // Polymorphic relation ID
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
-  @@index([userId])
   @@index([read])
   @@index([createdAt])
 }

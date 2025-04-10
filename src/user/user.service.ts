@@ -55,6 +55,7 @@ export class UsersService {
   }
   async findOne(id: string) {
     try {
+      console.log('id', id);
       const user = await this.db.user.findFirst({
         where: {
           id: id,

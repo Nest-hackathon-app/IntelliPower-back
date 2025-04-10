@@ -12,7 +12,7 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "seed:sensors": "ts-node -r tsconfig-paths/register seeders/sensors.seeder.ts",
+    "seed:sensors": "ts-node -r tsconfig-paths/register src/seeders/sensors.seeder.ts",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",

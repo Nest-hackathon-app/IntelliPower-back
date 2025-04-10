@@ -6,24 +6,23 @@ import { AreaResponseDto } from './dto/floor-response.dto';
 import { Roles } from 'src/auth/decorators/userRole.decorator';
 import { jwtGuard } from 'src/auth/guards/jwt.guard';
 import { RoleGuard } from 'src/auth/guards/role.guard';
+import { currentUser } from 'src/auth/decorators/getUser.decorator';
+import { user } from '@prisma/client';
 
+@UseGuards(jwtGuard)
 @Controller('floor-plan')
-@UseGuards(jwtGuard, RoleGuard)
 export class FloorPlanController {
   constructor(private readonly floorService: FloorPlanService) {}
   @ApiOperation({ summary: 'Get company Floors' })
-  @Get(':companyId')
-  async getCompanyFloorPlans(@Param('companyId') companyId: string) {
-    return this.floorService.getCompanyFloorPlans(companyId);
+  @Get()
+  async getCompanyFloorPlans(@currentUser() usr: user) {
+    return this.floorService.getCompanyFloorPlans(usr.companyId);
   }
   @Roles('admin')
   @ApiOperation({ summary: 'Add Floor to company' })
-  @Post(':companyId')
-  addFloorToCompany(
-    @Body() data: CreateFloorDto,
-    @Param('companyId') companyId: string,
-  ) {
-    return this.floorService.addFloorToCompany(data, companyId);
+  @Post()
+  addFloorToCompany(@Body() data: CreateFloorDto, @currentUser() usr: user) {
+    return this.floorService.addFloorToCompany(data, usr.companyId);
   }
   @ApiOperation({ summary: 'Get Floor Areas' })
   @ApiParam({ name: 'floorId', type: 'string' })
@@ -35,5 +34,9 @@ export class FloorPlanController {
   @Get('areas/:floorId')
   getFloorAreas(@Param('floorId') floorId: string) {
     return this.floorService.getFloorAreas(floorId);
+  }
+  @Get('area/:areaId')
+  getArea(@Param('areaId') areaId: string) {
+    return this.floorService.getArea(areaId);
   }
 }
