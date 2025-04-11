@@ -7,6 +7,8 @@ import {
   Param,
   Delete,
   Query,
+  UseGuards,
+  Logger,
 } from '@nestjs/common';
 import { ConsumtionService } from './consumtion.service';
 import { CreateConsumtionDto } from './dto/create-consumtion.dto';
@@ -21,9 +23,15 @@ import { GetPeriodDataDto } from 'src/temperature/dto/get-temperature-period.dto
 import { currentUser } from 'src/auth/decorators/getUser.decorator';
 import { user } from '@prisma/client';
 import { GetConsumptionLastDto } from './dto/get-consumtion-last.dto';
+import { Roles } from 'src/auth/decorators/userRole.decorator';
+import { jwtGuard } from 'src/auth/guards/jwt.guard';
+import { RoleGuard } from 'src/auth/guards/role.guard';
+import { Public } from 'src/auth/decorators/public.decorator';
 
+@UseGuards(jwtGuard, RoleGuard)
 @Controller('consumtion')
 export class ConsumtionController {
+  logger = new Logger(ConsumtionController.name);
   constructor(private readonly consumtionService: ConsumtionService) {}
 
   @Post()
@@ -137,7 +145,7 @@ export class ConsumtionController {
   ) {
     return this.consumtionService.update(+id, updateConsumtionDto);
   }
-  @Delete(':id')
+  @Delete('item/:id')
   remove(@Param('id') id: string) {
     return this.consumtionService.remove(+id);
   }
@@ -164,7 +172,8 @@ export class ConsumtionController {
   })
   @ApiParam({
     name: 'floorId',
-    required: false,
+    type: String,
+    required: true,
   })
   @ApiQuery({
     type: GetConsumptionLastDto,
@@ -175,8 +184,43 @@ export class ConsumtionController {
   ) {
     return this.consumtionService.getEntriesOfLastPeriodOfFloor(floorId, data);
   }
+  @Public()
+  @ApiOperation({ summary: 'Get Training Data for ml' })
+  @Get('ai')
+  getMlData() {
+    return this.consumtionService.getMlData();
+  }
+
+  @Roles('admin')
+  @ApiOperation({ summary: 'Delete all the consumtion entries of a company' })
+  @Delete('clear')
+  clearConsumtionEntries(@currentUser() user: user) {
+    return this.consumtionService.clearCompanyConsumtion(user.companyId);
+  }
+
+  @Public()
   @MessagePattern('consumtion/entry')
   entry(@Payload() data: CreateConsumtionDto) {
+    if (!data) {
+      this.logger.error('No data received');
+      return;
+    }
+    if (!data.id) {
+      this.logger.error('No sensorId received');
+
+      return;
+    }
+    if (!data.voltage) {
+      this.logger.error('No voltage received');
+      return;
+    }
+    if (!data.power) {
+      this.logger.error('No power received');
+      return;
+    }
+    this.logger.log('Adding consumtion entry from sensor ' + data.id);
+    this.logger.log('Voltage: ' + data.voltage);
+    this.logger.log('Power: ' + data.power);
     return this.consumtionService.create(data);
   }
 }

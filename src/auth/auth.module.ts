@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -12,6 +12,7 @@ import { UsersService } from 'src/user/user.service';
 import { jwtGuard } from './guards/jwt.guard';
 import { RoleGuard } from './guards/role.guard';
 
+@Global()
 @Module({
   imports: [UserModule, PassportModule, JwtModule, ConfigModule.forRoot()],
   controllers: [AuthController],
@@ -24,6 +25,6 @@ import { RoleGuard } from './guards/role.guard';
     jwtGuard,
     RoleGuard
   ],
-  exports: [RoleGuard, jwtGuard],
+  exports: [RoleGuard, jwtGuard,JwtModule],
 })
 export class AuthModule {}

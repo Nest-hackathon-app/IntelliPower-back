@@ -91,4 +91,8 @@ export class AuthService {
     });
     return { accessToken: newAccessToken, refreshToken: newRefreshToken };
   }
-}
+  async addProfilePicture(picture: Express.Multer.File, id: string) {
+    const base64 = picture.buffer.toString('base64');
+    return this.userService.addProfilePicture(base64, id);
+  }
+  }

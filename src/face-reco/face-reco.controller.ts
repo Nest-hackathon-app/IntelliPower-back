@@ -19,7 +19,7 @@ export class FaceRecoController {
   @Post()
   async uploadImage(@UploadedFile() file: Express.Multer.File) {
     console.log('Received file:', file);
-    const result = await this.faceRecoService.processImage(file);
+    const result = await this.faceRecoService.authenticateFace(file);
     return result;
   }
 }

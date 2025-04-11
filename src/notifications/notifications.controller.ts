@@ -35,16 +35,16 @@ export class NotificationsController {
   ) {
     return this.notificationsService.addNotification(userId, data);
   }
-
-  @Get(':userId')
+  @UseGuards(jwtGuard)
+  @Get()
   @ApiOperation({ summary: 'Get all notifications for a specific user' })
   @ApiResponse({
     status: 200,
     description: 'List of notifications for the user',
   })
   @ApiParam({ name: 'userId', type: String, description: 'User ID' })
-  async getNoty(@Param('userId') userId: string) {
-    return this.notificationsService.getNotifications(userId);
+  async getNoty(@currentUser() user: user) {
+    return this.notificationsService.getNotifications(user.id);
   }
 
   @Post(':userId')
@@ -64,7 +64,7 @@ export class NotificationsController {
     );
   }
 
-  @Delete(':userId/:notificationId')
+  @Delete(':notificationId')
   @ApiOperation({ summary: 'Delete a specific notification for a user' })
   @ApiResponse({
     status: 200,
@@ -77,9 +77,9 @@ export class NotificationsController {
     description: 'Notification ID',
   })
   async clearNotification(
-    @Param('userId') userId: string,
+    @currentUser() user: user,
     @Param('notificationId') notificationId: string,
   ) {
-    return this.notificationsService.clearNotification(userId, notificationId);
+    return this.notificationsService.clearNotification(user.id, notificationId);
   }
 }

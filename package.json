@@ -11,7 +11,7 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "seed:entries":"ts-node prisma/seed.ts",
+    "seed:entries": "ts-node prisma/seed.ts",
     "start:prod": "node dist/main",
     "seed:sensors": "ts-node -r tsconfig-paths/register src/seeders/sensors.seeder.ts",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",

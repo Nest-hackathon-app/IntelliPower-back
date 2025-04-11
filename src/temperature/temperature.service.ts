@@ -14,6 +14,38 @@ export interface GroupedData<T> {
 
 @Injectable()
 export class TemperatureService {
+  clearTemperatureEntries(companyId: string) {
+    return this.prisma.temperature.deleteMany({
+      where: {
+        sensor: {
+          area: {
+            floor: {
+              companyId,
+            },
+          },
+        },
+      },
+    });
+  }
+  async getDataForMl() {
+    return this.prisma.temperature.findMany({
+      include: {
+        sensor: {
+          include: {
+            area: {
+              include: {
+                floor: {
+                  include: {
+                    company: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
   async getTemperatureDataByFloor(query: GetGroupedDataDto, floorId: string) {
     const { startDate, endDate, groupBy } = query;
     const temperature = await this.prisma.temperature.findMany({
@@ -42,7 +74,11 @@ export class TemperatureService {
     });
   }
 
-  async addTemperatureEntry(sensorId: string, temperature: number) {
+  async addTemperatureEntry(
+    sensorId: string,
+    temperature: number,
+    humidity: number,
+  ) {
     const room = await this.prisma.sensor.findUnique({
       where: { id: sensorId },
       select: { area: { select: { id: true } } },
@@ -54,6 +90,7 @@ export class TemperatureService {
     return this.prisma.temperature.create({
       data: {
         temp: temperature,
+        humidity,
         sensor: {
           connect: {
             id: sensorId,
@@ -144,8 +181,8 @@ export class TemperatureService {
           },
         },
         createdAt: {
-          gte: fallback,
-          lte: startDate,
+          lte: fallback,
+          gte: startDate,
         },
       },
       orderBy: {
@@ -178,8 +215,8 @@ export class TemperatureService {
           areaId,
         },
         createdAt: {
-          gte: fallback,
-          lte: startDate,
+          lte: fallback,
+          gte: startDate,
         },
       },
       orderBy: {

@@ -10,11 +10,10 @@ describe('FaceRecoController', () => {
       controllers: [FaceRecoController],
       providers: [FaceRecoService],
     }).compile();
-
     controller = module.get<FaceRecoController>(FaceRecoController);
   });
-
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
 });
+

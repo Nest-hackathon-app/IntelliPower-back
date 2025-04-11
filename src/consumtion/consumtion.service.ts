@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateConsumtionDto } from './dto/create-consumtion.dto';
 import { UpdateConsumtionDto } from './dto/update-consumtion.dto';
 import { PrismaService } from 'src/db/prisma.service';
@@ -6,6 +6,7 @@ import { groupByDate } from 'src/utils/group-data.util';
 import { GetGroupedDataDto } from 'src/temperature/dto/get-temperature.dto';
 import { GetPeriodDataDto } from 'src/temperature/dto/get-temperature-period.dto';
 import { GetConsumptionLastDto } from './dto/get-consumtion-last.dto';
+import { FloorResponseDto } from 'src/floor-plan/dto/floor-response.dto';
 @Injectable()
 export class ConsumtionService {
   constructor(private readonly prisma: PrismaService) {}
@@ -43,6 +44,7 @@ export class ConsumtionService {
     floorId: string,
     data: GetConsumptionLastDto,
   ) {
+    console.log(floorId);
     const now = new Date();
     const fallBackDate = new Date();
     switch (data.type) {
@@ -55,7 +57,7 @@ export class ConsumtionService {
       case 'MONTH':
         fallBackDate.setMonth(now.getMonth() - 1);
     }
-    const floor = await this.prisma.floor.findFirst({
+    const floor = await this.prisma.floor.findUnique({
       where: {
         id: floorId,
       },
@@ -68,8 +70,9 @@ export class ConsumtionService {
         },
       },
     });
+    console.log(floor);
     if (!floor) {
-      throw new Error('Floor not found');
+      throw new NotFoundException('Floor not found');
     }
     return this.prisma.electricity.findMany({
       where: {
@@ -161,6 +164,25 @@ export class ConsumtionService {
       },
     });
   }
+  getMlData() {
+    return this.prisma.electricity.findMany({
+      include: {
+        sensor: {
+          include: {
+            area: {
+              include: {
+                floor: {
+                  include: {
+                    company: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
   findAll() {
     return `This action returns all consumtion`;
   }
@@ -175,5 +197,19 @@ export class ConsumtionService {
 
   remove(id: number) {
     return `This action removes a #${id} consumtion`;
+  }
+
+  clearCompanyConsumtion(companyId: string) {
+    return this.prisma.electricity.deleteMany({
+      where: {
+        sensor: {
+          area: {
+            floor: {
+              companyId,
+            },
+          },
+        },
+      },
+    });
   }
 }

@@ -14,6 +14,7 @@ model user {
   password   String    // Consider using encryption
   email      String    @unique
   companyId  String
+  image String? //Base64 image (for proof of concept only!!)
   role       UserRole @default(employee)
   company    Company   @relation(fields: [companyId], references: [id])
   entrances  Entrance[]

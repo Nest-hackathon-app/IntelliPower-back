@@ -1,8 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TemperatureController } from './temperature.controller';
-import { TemperatureService } from './temperature.service';
-import { TemperatureConsumer } from './temperature.consumer';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { TemperatureService } from './temperature.service';
 
 @Module({
   imports: [

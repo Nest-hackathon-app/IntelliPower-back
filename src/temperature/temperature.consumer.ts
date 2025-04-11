@@ -1,6 +1,6 @@
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { TemperatureService } from './temperature.service';
 import { Injectable } from '@nestjs/common';
+import { TemperatureService } from './temperature.service';
 
 @Injectable()
 export class TemperatureConsumer {

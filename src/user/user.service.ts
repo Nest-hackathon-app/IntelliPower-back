@@ -10,7 +10,40 @@ import {
 import { PrismaService } from 'src/db/prisma.service';
 @Injectable()
 export class UsersService {
+  updateUserPicture(userId: string, data: Express.Multer.File) {
+    const image = data.buffer.toString('base64');
+    console.log('Encoded image:', image);
+    return this.db.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        image,
+      },
+    });
+  }
+  getEmployeesPictures(compnyId: string) {
+    return this.db.user.findMany({
+      where: {
+        companyId: compnyId,
+      },
+      select: {
+        image: true,
+        id: true,
+        name: true,
+      },
+    });
+  }
+
   constructor(private readonly db: PrismaService) {}
+  async addProfilePicture(id: string, image: string) {
+    return this.db.user.update({
+      where: { id },
+      data: {
+        image: image,
+      },
+    });
+  }
   async create(createUserDto: CreateUserDto) {
     const user = { ...createUserDto };
     try {
@@ -124,5 +157,15 @@ export class UsersService {
     } catch (e) {
       throw new HttpException(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
+  async profile(userId: string) {
+    return this.db.user.findUnique({
+      where: {
+        id: userId,
+      },
+      include: {
+        company: true,
+      },
+    });
   }
 }
