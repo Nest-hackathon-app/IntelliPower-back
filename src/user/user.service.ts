@@ -31,29 +31,26 @@ export class UsersService {
     companyId: string,
   ) {
     try {
-      employees=employees.filter((employee) => {
+      employees = employees.filter((employee) => {
         if (!this.validateEmployee(employee)) {
           return false;
         }
-        console.log('Employee:', employee);
 
         return true;
-      })
-      const count = await this.db.user.createMany({
+      });
+      const users = await this.db.user.createManyAndReturn({
         skipDuplicates: true,
-        data: employees.map((employee) => {
-          console.log('Employee:', employee);
 
-          return {
-            name: employee.employee_name,
-            email: employee.email,
-            password: bcrypt.hashSync(employee.phone_number, 5),
-            companyId,
-          };
-        }),
+        data: employees.map((employee) => ({
+          name: employee.employee_name,
+          email: employee.email,
+          password: bcrypt.hashSync(employee.phone_number, 5),
+          companyId,
+        })),
       });
       return {
-        insertedRows: count.count,
+        insertedRows: users.length,
+        users: users,
       };
     } catch (error) {
       console.error('Error creating employees:', error);
@@ -94,7 +91,7 @@ export class UsersService {
       },
     });
   }
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto, companyId: string) {
     const user = { ...createUserDto };
     try {
       //TODO: change the hash to more in prod
@@ -103,7 +100,7 @@ export class UsersService {
       return this.db.user.create({
         data: {
           ...user,
-          company: { create: { name: 'Dla3' } },
+          company: { connect: { id: companyId } },
         },
       });
     } catch (error) {
@@ -263,6 +260,7 @@ export class UsersService {
       return false;
     }
     if (!employe['email']) {
+      console.log(employe['email']);
       console.log('Email not provided');
       return false;
     }
@@ -278,5 +276,6 @@ export class UsersService {
       console.log('Age not provided');
       return false;
     }
+    return true;
   }
 }

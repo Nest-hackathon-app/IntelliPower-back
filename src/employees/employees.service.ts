@@ -29,10 +29,10 @@ export class EmployeesService {
         Readable.from(csvString)
           .pipe(csv())
           .on('data', (data: RawRow) => {
-            results.push(data);
+          results.push(data);
           })
           .on('end', () => {
-            resolve(this.normalizeData(results));
+            resolve(results);
           });
       } catch (error: unknown) {
         console.error('Error parsing CSV file:', error);

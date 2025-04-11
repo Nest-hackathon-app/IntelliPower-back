@@ -10,10 +10,10 @@ export class CreateUserDto {
   @IsEmail({}, { message: 'email is invalid' })
   readonly email: string;
   @ApiProperty({ name: 'password', description: 'The password of the user' })
-  @IsStrongPassword(
-    { minLength: 8, minUppercase: 1, minSymbols: 1 },
-    { message: 'password is too weak' },
-  )
+  // @IsStrongPassword(
+  //   { minLength: 8, minUppercase: 1, minSymbols: 1 },
+  //   { message: 'password is too weak' },
+  // )
   password: string;
   @ApiProperty({ description: 'User Role', enum: UserRole })
   @IsEnum(UserRole)

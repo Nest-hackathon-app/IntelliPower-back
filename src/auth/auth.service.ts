@@ -25,10 +25,9 @@ export class AuthService {
   async getUserById(id: string): Promise<user> {
     return this.userService.findOne(id);
   }
-  async register(user: CreateUserDto): Promise<LoginResDto> {
+  async register(user: CreateUserDto, companyId: string): Promise<LoginResDto> {
     try {
-      const newUser = await this.userService.create(user);
-      return this.login(newUser);
+    return this.userService.create(user, companyId);
     } catch (e) {
       if (e instanceof PrismaClientKnownRequestError)
         throw new HttpException(

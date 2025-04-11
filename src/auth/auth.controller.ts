@@ -15,7 +15,12 @@ import { AuthService } from './auth.service';
 import { RefreshTokenDto } from './dto/refreshTokenDto';
 import { ConfigService } from '@nestjs/config';
 import { refreshToken } from './dto/refreshToken.dto';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { loginReqDto } from './dto/login.req.dto';
 import { LoginResDto } from './dto/login.res.dto';
 import { jwtGuard } from './guards/jwt.guard';
@@ -70,8 +75,11 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'User already exists' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  async register(@Body() user: CreateUserDto): Promise<LoginResDto> {
-    return this.authServices.register(user);
+  async register(
+    @Body() user: CreateUserDto,
+    @currentUser() curr: user,
+  ): Promise<LoginResDto> {
+    return this.authServices.register(user, curr.companyId);
   }
   @UseGuards(jwtGuard)
   @Roles('admin')
@@ -100,4 +108,3 @@ export class AuthController {
     return this.authServices.updateUser(data, id);
   }
 }
-
