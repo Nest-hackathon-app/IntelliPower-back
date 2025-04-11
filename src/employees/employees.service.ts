@@ -29,7 +29,6 @@ export class EmployeesService {
         Readable.from(csvString)
           .pipe(csv())
           .on('data', (data: RawRow) => {
-            console.log('Row:', data);
             results.push(data);
           })
           .on('end', () => {

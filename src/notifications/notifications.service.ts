@@ -22,7 +22,7 @@ export class NotificationsService {
     //   },
     // });
     this.sseService.sendToClient(userId, {
-      data: 'I am the power hihi',
+      data: 'رح تسمع بزاف وش دخلك اليوم',
       type: 'Notification',
     });
   }

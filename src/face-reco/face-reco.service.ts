@@ -1,20 +1,9 @@
-//TODO add images caching +retries caching
 import { HttpService } from '@nestjs/axios';
-import {
-  HttpException,
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
+import { HttpException, Injectable } from '@nestjs/common';
 import { match } from 'assert';
 import { AxiosResponse, isAxiosError } from 'axios';
 import * as FormData from 'form-data';
-import { catchError } from 'rxjs';
 import { PrismaService } from 'src/db/prisma.service';
-import { RedisService } from 'src/redis/redis.service';
-import { MQTT_PUBLISHER } from 'src/utils/constants';
-import { isAggregateError } from 'src/utils/typeGuard/isAggregateError';
 
 export interface FaceRecognitionResponse {
   match: boolean;
@@ -29,12 +18,9 @@ export interface AiResponse {
 }
 @Injectable()
 export class FaceRecoService {
-  LOGIN_ATTEMPTS = 3;
   constructor(
     private readonly http: HttpService,
     private readonly db: PrismaService,
-    @Inject(MQTT_PUBLISHER) private readonly client: ClientProxy,
-    private readonly redis: RedisService,
   ) {}
   async processImage(file: Express.Multer.File) {
     const form1 = new FormData();
@@ -60,70 +46,40 @@ export class FaceRecoService {
       }
     }
   }
-  async subtractLoginAttempt(userId: string) {
-    const loginAttempts = await this.redis.get<number>(userId);
-    if (loginAttempts == this.LOGIN_ATTEMPTS - 1) {
-      await this.redis.delete(userId);
-      this.client.emit('buzzing', { type: 'login Failure' });
-      return;
-    }
-
-    if (!loginAttempts) {
-      await this.redis.setWithTtl(userId, 1, 60);
-    }
-    if (loginAttempts) {
-      await this.redis.setWithoutReset(userId);
-    }
-  }
-  //TODO user info will be added aswell to the response
-  async authenticateFace(
-    file: Express.Multer.File,
-  ): Promise<{ match: boolean }> {
+  async authenticateFace(file: Express.Multer.File) {
     const base64 = file.buffer.toString('base64');
-    const baseUrl = 'https://b15d-41-111-161-82.ngrok-free.app';
-    const base64Users = await this.db.user.findMany({
+    const url = 'https://b835-41-111-161-82.ngrok-free.app/auth';
+    const base64onlyAdmin = await this.db.user.findMany({
       select: {
         image: true,
-        name: true,
       },
     });
-
-    try {
-      const result = await Promise.any<AxiosResponse<FaceRecognitionResponse>>(
-        base64Users.map(async (user) => {
-          console.log('scanning user:', user.name);
-          const res = await this.http.axiosRef.post<FaceRecognitionResponse>(
-            baseUrl + '/auth',
-            {
-              expected_image_base64: user.image,
+    const result = await Promise.any<AxiosResponse<FaceRecognitionResponse>>(
+      base64onlyAdmin.map(async (admin) => {
+        return new Promise((resolve, reject) => {
+          this.http.axiosRef
+            .post<FaceRecognitionResponse>(url, {
+              expected_image_base64: admin.image,
               auth_image_base64: base64,
-            },
-          );
+            })
+            .then((res) => {
+              if (res.data.match === true) {
+                resolve(res);
+              }
+            })
+            .catch((err) => {
+              reject(new Error('Error during face recognition: ' + err));
+            });
+        });
+      }),
+    );
 
-          if (res.data.match === true) return res;
-          throw new Error('No match'); // Forces Promise.any to keep looking
-        }),
-      );
-
-      if (!result) {
-        throw new HttpException('No matching face found', 404);
-      }
-      //Open the door after being authed
-      this.openDoor();
-      return {
-        // eslint-disable-next-line prettier/prettier
-      match:result.data.match,
-      };
-    } catch (error: unknown) {
-      if (isAggregateError(error)) {
-        await this.subtractLoginAttempt('figureOutId');
-        throw new HttpException('No matching face found', 404);
-      }
-
-      throw new InternalServerErrorException();
+    if (!result) {
+      throw new HttpException('No matching face found', 404);
     }
-  }
-  openDoor() {
-    this.client.emit('open_door', { user: 'AIIII' });
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      match:result.data.match
+    };
   }
 }

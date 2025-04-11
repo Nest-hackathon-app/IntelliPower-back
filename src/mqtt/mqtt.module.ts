@@ -1,6 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { MQTT_PUBLISHER } from 'src/utils/constants';
+@Global()
 @Module({
   imports: [
     ClientsModule.register([

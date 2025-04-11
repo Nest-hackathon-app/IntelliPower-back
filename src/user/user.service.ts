@@ -30,17 +30,47 @@ export class UsersService {
     employees: NormalizedRow[],
     companyId: string,
   ) {
-    const count = await this.db.user.createMany({
-      data: employees.map((employee) => ({
-        name: employee.employee_name,
-        email: employee.email,
-        password: bcrypt.hashSync(employee.phone_number, 5),
-        companyId,
-      })),
-    });
-    return {
-      insertedRows: count.count,
-    };
+    try {
+      employees=employees.filter((employee) => {
+        if (!this.validateEmployee(employee)) {
+          return false;
+        }
+        console.log('Employee:', employee);
+
+        return true;
+      })
+      const count = await this.db.user.createMany({
+        skipDuplicates: true,
+        data: employees.map((employee) => {
+          console.log('Employee:', employee);
+
+          return {
+            name: employee.employee_name,
+            email: employee.email,
+            password: bcrypt.hashSync(employee.phone_number, 5),
+            companyId,
+          };
+        }),
+      });
+      return {
+        insertedRows: count.count,
+      };
+    } catch (error) {
+      console.error('Error creating employees:', error);
+      if (error instanceof PrismaClientValidationError) {
+        throw new HttpException(error, HttpStatus.BAD_REQUEST);
+      }
+      if (error instanceof PrismaClientKnownRequestError) {
+        throw new HttpException(
+          'User Already Exist Please login With your Email and Password',
+          HttpStatus.EXPECTATION_FAILED,
+        );
+      }
+      throw new HttpException(
+        'Something went wrong, please try again',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
   getEmployeesPictures(companyId: string) {
     return this.db.user.findMany({
@@ -226,5 +256,27 @@ export class UsersService {
       limit: q.limit,
       isLastPage: content.length < q.limit,
     };
+  }
+  validateEmployee(employe: object) {
+    if (!employe) {
+      console.log('Employee object is empty');
+      return false;
+    }
+    if (!employe['email']) {
+      console.log('Email not provided');
+      return false;
+    }
+    if (!employe['phone_number']) {
+      console.log('Phone number not provided');
+      return false;
+    }
+    if (!employe['employee_name']) {
+      console.log('Employee name not provided');
+      return false;
+    }
+    if (!employe['age']) {
+      console.log('Age not provided');
+      return false;
+    }
   }
 }
