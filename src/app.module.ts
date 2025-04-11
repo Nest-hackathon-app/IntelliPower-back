@@ -12,6 +12,11 @@ import { FanControlModule } from './fan-control/fan-control.module';
 import { WsSocketManagerModule } from './ws-socket-manager/ws-socket-manager.module';
 import { Reflector } from '@nestjs/core';
 import { FaceRecoModule } from './face-reco/face-reco.module';
+import { BuzzerModule } from './buzzer/buzzer.module';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { MQTT_PUBLISHER } from './utils/constants';
+import { MqttModule } from './mqtt/mqtt.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -26,6 +31,9 @@ import { FaceRecoModule } from './face-reco/face-reco.module';
     FanControlModule,
     WsSocketManagerModule,
     FaceRecoModule,
+    BuzzerModule,
+        MqttModule,
+        RedisModule,
   ],
   providers: [AppService, Reflector],
 })
