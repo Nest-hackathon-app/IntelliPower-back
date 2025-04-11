@@ -13,10 +13,9 @@ import { WsSocketManagerModule } from './ws-socket-manager/ws-socket-manager.mod
 import { Reflector } from '@nestjs/core';
 import { FaceRecoModule } from './face-reco/face-reco.module';
 import { BuzzerModule } from './buzzer/buzzer.module';
-import { ClientsModule, Transport } from '@nestjs/microservices';
-import { MQTT_PUBLISHER } from './utils/constants';
 import { MqttModule } from './mqtt/mqtt.module';
 import { RedisModule } from './redis/redis.module';
+import { EmployeesModule } from './employees/employees.module';
 
 @Module({
   imports: [
@@ -32,8 +31,9 @@ import { RedisModule } from './redis/redis.module';
     WsSocketManagerModule,
     FaceRecoModule,
     BuzzerModule,
-        MqttModule,
-        RedisModule,
+    MqttModule,
+    RedisModule,
+    EmployeesModule,
   ],
   providers: [AppService, Reflector],
 })

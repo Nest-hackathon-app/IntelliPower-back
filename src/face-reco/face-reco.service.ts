@@ -80,7 +80,7 @@ export class FaceRecoService {
     file: Express.Multer.File,
   ): Promise<{ match: boolean }> {
     const base64 = file.buffer.toString('base64');
-    const url = 'https://b835-41-111-161-82.ngrok-free.app/auth';
+    const baseUrl = 'https://b15d-41-111-161-82.ngrok-free.app';
     const base64Users = await this.db.user.findMany({
       select: {
         image: true,
@@ -93,7 +93,7 @@ export class FaceRecoService {
         base64Users.map(async (user) => {
           console.log('scanning user:', user.name);
           const res = await this.http.axiosRef.post<FaceRecognitionResponse>(
-            url,
+            baseUrl + '/auth',
             {
               expected_image_base64: user.image,
               auth_image_base64: base64,
@@ -119,6 +119,7 @@ export class FaceRecoService {
         await this.subtractLoginAttempt('figureOutId');
         throw new HttpException('No matching face found', 404);
       }
+
       throw new InternalServerErrorException();
     }
   }

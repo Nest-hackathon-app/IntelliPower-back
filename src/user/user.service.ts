@@ -8,6 +8,10 @@ import {
   PrismaClientValidationError,
 } from '@prisma/client/runtime/library';
 import { PrismaService } from 'src/db/prisma.service';
+import { NormalizedRow } from 'src/employees/employees.service';
+import { user } from '@prisma/client';
+import { PaginationDtoRes } from 'src/common/dto/pagination-res.dto';
+import { PaginationDtoReq } from 'src/common/dto/pagination-req.dto';
 @Injectable()
 export class UsersService {
   updateUserPicture(userId: string, data: Express.Multer.File) {
@@ -22,10 +26,26 @@ export class UsersService {
       },
     });
   }
-  getEmployeesPictures(compnyId: string) {
+  async createEmployeesWithArray(
+    employees: NormalizedRow[],
+    companyId: string,
+  ) {
+    const count = await this.db.user.createMany({
+      data: employees.map((employee) => ({
+        name: employee.employee_name,
+        email: employee.email,
+        password: bcrypt.hashSync(employee.phone_number, 5),
+        companyId,
+      })),
+    });
+    return {
+      insertedRows: count.count,
+    };
+  }
+  getEmployeesPictures(companyId: string) {
     return this.db.user.findMany({
       where: {
-        companyId: compnyId,
+        companyId,
       },
       select: {
         image: true,
@@ -105,16 +125,29 @@ export class UsersService {
   async update(id: string, updateUserDto: UpdateUserDto) {
     try {
       const userData = { ...updateUserDto };
+
       if (userData.password) {
         //TODO: change the hash to more in prod
         userData.password = await bcrypt.hash(userData.password, 5);
       }
-      return this.db.user.update({
+      const res = await this.db.user.updateManyAndReturn({
         where: {
-          id: id,
+          AND: [
+            { id: id },
+            {
+              OR: [{ role: 'employee' }, { id }],
+            },
+          ],
         },
         data: updateUserDto,
       });
+      if (res.length == 0) {
+        throw new HttpException(
+          'user not found or you do not have access to update it',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      return res[0];
     } catch (e) {
       throw new HttpException(e, HttpStatus.BAD_REQUEST);
     }
@@ -133,7 +166,10 @@ export class UsersService {
         },
       });
       if (deleted.count === 0) {
-        throw new HttpException('user not found', HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          'user not found or you do not have access to delete it ',
+          HttpStatus.NOT_FOUND,
+        );
       }
       return deleted;
     } catch (e) {
@@ -167,5 +203,28 @@ export class UsersService {
         company: true,
       },
     });
+  }
+  async getCompanyEmployees(companyId: string, q: PaginationDtoReq) {
+    const content = await this.db.user.findMany({
+      where: {
+        companyId,
+      },
+      skip: q.page * q.limit,
+      take: q.limit,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        image: true,
+      },
+    });
+    return {
+      content,
+      page: q.page,
+      limit: q.limit,
+      isLastPage: content.length < q.limit,
+    };
   }
 }

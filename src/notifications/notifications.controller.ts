@@ -15,19 +15,29 @@ import { createNotificationDto } from './dto/notification.dto';
 import { Notification, user } from '@prisma/client';
 import { jwtGuard } from 'src/auth/guards/jwt.guard';
 import { currentUser } from 'src/auth/decorators/getUser.decorator';
+import { Observable } from 'rxjs';
+import { Public } from 'src/auth/decorators/public.decorator';
 
+@UseGuards(jwtGuard)
 @Controller('notifications')
 export class NotificationsController {
   constructor(
     private readonly notificationsService: NotificationsService,
     private readonly sseServices: NotificationsSseService,
   ) {}
-  @UseGuards(jwtGuard)
+  @ApiOperation({ summary: 'Get notifications stream' })
+  @ApiResponse({
+    status: 200,
+    description: 'Notifications stream',
+    type: Observable<Notification>,
+  })
+  @Public()
   @Sse()
-  getNotifications(@currentUser() user: user) {
-    const stream = this.sseServices.getStream(user.id);
-    return stream;
+  getNotifications() {
+    const stream = this.sseServices.getStream('5');
+    return stream?.pipe();
   }
+
   @Post(':userId')
   sendNotification(
     @Param('userId') userId: string,
@@ -35,9 +45,8 @@ export class NotificationsController {
   ) {
     return this.notificationsService.addNotification(userId, data);
   }
-  @UseGuards(jwtGuard)
-  @Get()
-  @ApiOperation({ summary: 'Get all notifications for a specific user' })
+  @Get('/me')
+  @ApiOperation({ summary: 'Get all notifications for the logged user ' })
   @ApiResponse({
     status: 200,
     description: 'List of notifications for the user',

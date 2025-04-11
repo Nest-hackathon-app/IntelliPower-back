@@ -3,7 +3,9 @@ import {
   Controller,
   Delete,
   Param,
+  Patch,
   Post,
+  Put,
   UseGuards,
 } from '@nestjs/common';
 import { localGuard } from './guards/local.guard';
@@ -13,13 +15,14 @@ import { AuthService } from './auth.service';
 import { RefreshTokenDto } from './dto/refreshTokenDto';
 import { ConfigService } from '@nestjs/config';
 import { refreshToken } from './dto/refreshToken.dto';
-import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { loginReqDto } from './dto/login.req.dto';
 import { LoginResDto } from './dto/login.res.dto';
 import { jwtGuard } from './guards/jwt.guard';
 import { Roles } from './decorators/userRole.decorator';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { RoleGuard } from './guards/role.guard';
+import { UpdateUserDto } from 'src/user/dto/update-user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -83,4 +86,18 @@ export class AuthController {
   deleteUser(@currentUser() user: user, @Param('id') id: string) {
     return this.authServices.deleteUser(id, user.id);
   }
+  @Roles('admin')
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update a employee' })
+  @ApiResponse({
+    status: 200,
+    description: 'Employee updated successfully',
+  })
+  @ApiResponse({ status: 404, description: 'Forbidden or user not found' })
+  @ApiBody({ type: UpdateUserDto })
+  @ApiBearerAuth()
+  updateUser(@Param('id') id: string, @Body() data: UpdateUserDto) {
+    return this.authServices.updateUser(data, id);
+  }
 }
+

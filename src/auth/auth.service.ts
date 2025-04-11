@@ -14,6 +14,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { jwtPayload } from './interfaces/jwtPayload';
 import { UsersService } from 'src/user/user.service';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import { UpdateUserDto } from 'src/user/dto/update-user.dto';
 @Injectable()
 export class AuthService {
   constructor(
@@ -95,4 +96,7 @@ export class AuthService {
     const base64 = picture.buffer.toString('base64');
     return this.userService.addProfilePicture(base64, id);
   }
+  async updateUser(data: UpdateUserDto, userId: string) {
+    return this.userService.update(userId, data);
   }
+}

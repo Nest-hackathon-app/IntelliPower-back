@@ -6,10 +6,16 @@ import { apiReference } from '@scalar/nestjs-api-reference';
 import { ValidationPipe } from '@nestjs/common';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { RoleGuard } from './auth/guards/role.guard';
+import { readFileSync } from 'node:fs';
 
 async function bootstrap() {
+  const httpsOptions = {
+    key: readFileSync('cert/key.pem'),
+    cert: readFileSync('cert/cert.pem'),
+  };
+
   const app = await NestFactory.create(AppModule, {
-    cors: { origin: '*' },
+    cors: { origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'] },
     logger: ['error', 'warn', 'log'],
   });
   const config = new DocumentBuilder().setTitle('BACKEND API DOCS').build();

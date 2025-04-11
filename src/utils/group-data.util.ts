@@ -6,11 +6,14 @@ export class WithcreatedAt {
 }
 
 export function groupByDate<T extends WithcreatedAt>(
-  temperature: T[],
+  data: T[],
   groupBy: GROUPBY,
   column: string,
 ) {
-  const grouped = temperature.reduce<Record<string, GroupedData<T>>>(
+  let min = data[0];
+  let max = data[0];
+
+  const grouped = data.reduce<Record<string, GroupedData<T>>>(
     (acc, curr) => {
       const date = new Date(curr.createdAt);
       let key: string;
@@ -38,6 +41,8 @@ export function groupByDate<T extends WithcreatedAt>(
         acc[key] = { content: [], sum: 0, count: 0 };
       }
 
+      min = curr['column'] < min['column'] ? curr : min;
+      max = curr['column'] > max ? curr : max;
       // Accumulate sum and count
       acc[key].content.push(curr);
       acc[key].sum += curr[column];
@@ -51,9 +56,21 @@ export function groupByDate<T extends WithcreatedAt>(
   // Now calculate the averages for each group and return
   const result = Object.keys(grouped).map((key) => {
     const group = grouped[key];
+
     const average = group.sum / group.count;
-    return { key, average, content: group.content };
+
+    const returnedValue = {
+      key,
+      average,
+      content: group.content,
+      min: min,
+      max: max,
+    };
+
+    console.log(min, max);
+    return returnedValue;
   });
+
   //TODO:get prediction from the ML model
   const predictedRes = result;
   return { actualRes: result, predicted: predictedRes };
