@@ -1,6 +1,6 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty} from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
-import { IsEmail, IsEnum, IsString, IsStrongPassword } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsString, IsStrongPassword } from 'class-validator';
 
 export class CreateUserDto {
   @ApiProperty({ name: 'name', description: 'The name of the user' })
@@ -10,11 +10,9 @@ export class CreateUserDto {
   @IsEmail({}, { message: 'email is invalid' })
   readonly email: string;
   @ApiProperty({ name: 'password', description: 'The password of the user' })
-  // @IsStrongPassword(
-  //   { minLength: 8, minUppercase: 1, minSymbols: 1 },
-  //   { message: 'password is too weak' },
-  // )
-  password: string;
+  @IsString()
+  @IsNotEmpty()
+    password: string;
   @ApiProperty({ description: 'User Role', enum: UserRole })
   @IsEnum(UserRole)
   role: UserRole;

@@ -93,6 +93,7 @@ export class UsersService {
   }
   async create(createUserDto: CreateUserDto, companyId: string) {
     const user = { ...createUserDto };
+
     try {
       //TODO: change the hash to more in prod
       const hashedPassword = await bcrypt.hash(user.password, 5);
@@ -113,6 +114,7 @@ export class UsersService {
           HttpStatus.EXPECTATION_FAILED,
         );
       }
+      console.error('Error creating user:', error);
       throw new HttpException(
         'Something went wrong, please try again',
         HttpStatus.INTERNAL_SERVER_ERROR,

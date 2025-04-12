@@ -1,4 +1,3 @@
-
 import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
 import { AnomaliesService } from './anomalies.service';
 import { createAnomalyDto } from './dto/create-anomaly.dto';
@@ -67,4 +66,3 @@ export class AnomaliesController {
     return this.anomaliesService.reportAnomalyResolved(anomalyId);
   }
 }
-

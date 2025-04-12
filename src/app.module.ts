@@ -16,9 +16,16 @@ import { BuzzerModule } from './buzzer/buzzer.module';
 import { MqttModule } from './mqtt/mqtt.module';
 import { RedisModule } from './redis/redis.module';
 import { EmployeesModule } from './employees/employees.module';
+import { DoorModule } from './door/door.module';
+import { HealthCheckModule } from './health-check/health-check.module';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
+    HttpModule.register({
+      timeout: 100000,
+      maxRedirects: 5,
+    }),
     AuthModule,
     UserModule,
     PrismaModule,
@@ -34,6 +41,8 @@ import { EmployeesModule } from './employees/employees.module';
     MqttModule,
     RedisModule,
     EmployeesModule,
+    DoorModule,
+    HealthCheckModule,
   ],
   providers: [AppService, Reflector],
 })

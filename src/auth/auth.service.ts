@@ -25,7 +25,7 @@ export class AuthService {
   async getUserById(id: string): Promise<user> {
     return this.userService.findOne(id);
   }
-  async register(user: CreateUserDto, companyId: string): Promise<LoginResDto> {
+  async register(user: CreateUserDto, companyId: string) {
     try {
     return this.userService.create(user, companyId);
     } catch (e) {

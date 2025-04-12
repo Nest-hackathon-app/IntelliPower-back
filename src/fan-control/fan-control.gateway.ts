@@ -9,47 +9,63 @@ import { Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { FAN_CONTROL_EVENTS, FAN_CONTROL_MESSAGE } from './constants';
 import { ApiTags } from '@nestjs/swagger';
+import { FanSpeed, FanStatus } from '@prisma/client';
+import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
+
+
+class fanStatusChangeDto {
+  @IsNotEmpty()
+  @IsString()
+  fanId: string;
+}
+class fanSpeedChangeDto extends fanStatusChangeDto {
+  @IsNotEmpty()
+  @IsEnum(FanSpeed)
+  speed: FanSpeed;
+}
+
 @ApiTags('Fan Control Gateway')
-@WebSocketGateway()
+@WebSocketGateway({
+  cors: {
+    origin: '*',
+  },
+})
 export class FanControlGateway {
   constructor(private readonly fanControlService: FanControlService) {}
   logger = new Logger(FanControlGateway.name);
 
   @SubscribeMessage(FAN_CONTROL_MESSAGE.FAN_TURN_ON)
-  handleFanTurnOn(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
-    this.logger.log('SENDING MQTT CMD');
-    return FAN_CONTROL_EVENTS.FAN_TURNED_OFF;
+  async handleFanTurnOn(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: fanStatusChangeDto,
+  ) {
+    await this.fanControlService.changeFanState(data.fanId, 'on');
+    return client.broadcast.emit(FAN_CONTROL_EVENTS.FAN_TURNED_ON, {
+      fanId: data.fanId,
+      status: 'on',
+    });
   }
   @SubscribeMessage(FAN_CONTROL_MESSAGE.FAN_TURN_OFF)
-  handleFanTurnOff(
+  async handleFanTurnOff(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: any,
+    @MessageBody() data: fanStatusChangeDto,
   ) {
-    this.logger.log('SENDING MQTT CMD');
+    await this.fanControlService.changeFanState(data.fanId, 'off');
+    client.broadcast.emit(FAN_CONTROL_EVENTS.FAN_TURNED_OFF, {
+      fanId: data.fanId,
+      status: 'off',
+    });
     return FAN_CONTROL_EVENTS.FAN_TURNED_OFF;
   }
   @SubscribeMessage(FAN_CONTROL_MESSAGE.FAN_SET_SPEED)
-  handleFanSetSpeed(
+  async handleFanSetSpeed(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: any,
+    @MessageBody() data: fanSpeedChangeDto,
   ) {
-    this.logger.log('SENDING MQTT CMD TO CHANGE FAN SPEED');
-    return FAN_CONTROL_EVENTS.FAN_SPEED_CHANGED;
+    await this.fanControlService.changeFanSpeed(data.fanId, data.speed);
+    client.broadcast.emit(FAN_CONTROL_EVENTS.FAN_SPEED_CHANGED, {
+      fanId: data.fanId,
+      speed: data.speed,
+    });
   }
-  @SubscribeMessage(FAN_CONTROL_MESSAGE.FAN_GET_STATUS)
-  handleFanGetStatus(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() data: any,
-  ) {
-    this.logger.log('SENDING MQTT CMD TO GET FAN STATUS');
-    return FAN_CONTROL_EVENTS.FAN_TURNED_OFF;
   }
-  @SubscribeMessage(FAN_CONTROL_MESSAGE.FAN_CHANGE_AIR_FLOW)
-  handleFanChangeAirFlow(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() data: any,
-  ) {
-    this.logger.log('SENDING MQTT CMD TO CHANGE AIR FLOW');
-    return FAN_CONTROL_EVENTS.FAN_CHANDEGD_AIR_FLOW;
-  }
-}

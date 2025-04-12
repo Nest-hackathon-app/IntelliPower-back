@@ -4,6 +4,7 @@ import { GetGroupedDataDto, GROUPBY } from './dto/get-temperature.dto';
 import { ClientProxy } from '@nestjs/microservices';
 import { groupByDate } from 'src/utils/group-data.util';
 import { GetConsumptionLastDto } from 'src/consumtion/dto/get-consumtion-last.dto';
+import { HttpService } from '@nestjs/axios';
 
 // Define a type for the grouped data
 export interface GroupedData<T> {
@@ -14,6 +15,12 @@ export interface GroupedData<T> {
 
 @Injectable()
 export class TemperatureService {
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject('ALERT_SERVICE') private readonly alertService: ClientProxy,
+    private readonly httpService: HttpService,
+  ) {}
+
   clearTemperatureEntries(companyId: string) {
     return this.prisma.temperature.deleteMany({
       where: {
@@ -63,11 +70,6 @@ export class TemperatureService {
     });
     return groupByDate(temperature, groupBy, 'temp');
   }
-  constructor(
-    private readonly prisma: PrismaService,
-    @Inject('ALERT_SERVICE') private readonly alertService: ClientProxy,
-  ) {}
-
   alertSensor() {
     this.alertService.emit('alert', {
       message: 'fire_alert',
@@ -87,10 +89,23 @@ export class TemperatureService {
       throw new Error('Room not found , sensorId: ' + sensorId);
     }
     const areaId = room.area.id;
+    const now = new Date();
+    const predictionBody = await this.prisma.sensor.findUnique({
+      where: { id: sensorId },
+      include: { area: { include: { floor: true } } },
+    });
+    const aiPrediction = await this.httpService.axiosRef.post(
+      process.env.PYTHON_BASE_URL + '/predict',
+      {
+        sensor: predictionBody,
+        createdAt: now,
+      },
+    );
     return this.prisma.temperature.create({
       data: {
         temp: temperature,
         humidity,
+        
         sensor: {
           connect: {
             id: sensorId,

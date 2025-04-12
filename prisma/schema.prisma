@@ -7,7 +7,6 @@ datasource db {
   provider = "postgresql" // or mysql, sqlite
   url      = env("DATABASE_URL")
 }
-
 model user {
   id         String    @id @default(uuid())
   name       String
@@ -24,17 +23,22 @@ model user {
   @@index([companyId])
   @@index([email])
   Notification Notification[]
+  DoorAccess DoorAccess[]
 }
-
 model Company {
   id        String   @id @default(uuid())
   name      String
   floors    Floor[]
   users     user[]
+  securityProfile SecurityProfile @default(low)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-
+enum SecurityProfile{
+  low
+  medium
+  high
+}
 model Floor {
   id         String   @id @default(uuid())
   name       String
@@ -45,10 +49,52 @@ model Floor {
   cameras    Camera[]
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-   @@unique([companyId,order])
+ @@unique([companyId,order])
   @@index([companyId])
 }
-
+model Fan{
+  id         String   @id @default(uuid())
+  name       String
+  areaId     String
+  area       Area     @relation(fields: [areaId], references: [id])
+  locationX  Float
+  locationY  Float
+  locationZ Float
+  speed FanSpeed @default(medium) 
+  lastMaintenance DateTime?
+  status FanStatus @default(off)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  @@index([areaId])
+}
+enum FanSpeed{
+  low
+  medium
+  high
+}
+model Rack{
+  id         String   @id @default(uuid())
+  name       String
+  areaId     String
+  area       Area     @relation(fields: [areaId], references: [id])
+  locationX  Float
+  locationY  Float
+  locationZ Float
+  lastMaintenance DateTime?
+  fanStatus FanStatus @default(off)
+  powerStatus PowerStatus @default(off)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  @@index([areaId])
+}
+enum FanStatus {
+  on
+  off
+}
+enum PowerStatus {
+  on
+  off
+}
 model Entrance {
   userId    String
   areaId    String
@@ -70,13 +116,11 @@ model Camera {
   locationY Float
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   areaId   String
   @@index([floorId])
-  Area Area @relation(fields: [areaId], references: [id])
+  Area Area? @relation(fields: [areaId], references: [id])
   Areaid String
 }
-
 model Area {
   id        String       @id @default(uuid())
   floorId   String
@@ -90,10 +134,12 @@ model Area {
   entrances Entrance[]
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
-
   @@index([floorId])
   @@index([name])
   sensor sensor[]
+  Door Door[]
+  Rack Rack[]
+  Fan Fan[]
 }
 model sensor{
   id        String   @id @default(uuid())
@@ -104,10 +150,10 @@ model sensor{
   locationY Float
   type SensorType 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
+  updatedAt DateTime @updatedAt 
   @@index([areaId])
   Electricity Electricity[]
+
   Temperature Temperature[]
 }
 enum SensorType {
@@ -119,24 +165,25 @@ model Temperature {
   sensorId String
   sensor   sensor   @relation(fields: [sensorId], references: [id])
   temp      Float
+  aiPrediction Float @default(0)
   humidity Float  
+  aiHumidityPrediction Float @default(0)
   createdAt DateTime @default(now())
 
   @@index([sensorId])
   @@index([createdAt]) // Important for time-series queries
 }
-
 model Electricity {
   id        String   @id @default(uuid())
-    power    Float 
+  power    Float 
   voltage  Float
+  predictedConsumption Float @default(0)
   createdAt DateTime @default(now())
   sensorId String
   sensor   sensor   @relation(fields: [sensorId], references: [id])
 
   @@index([createdAt]) // Important for time-series queries
 }
-
 model Anomaly {
   id         String     @id @default(uuid())
   areaId     String
@@ -151,23 +198,6 @@ model Anomaly {
   @@index([reportedAt])
 }
 
-enum UserRole {
-  admin
-  employee
-}
-
-enum AreaType {
-  server_room
-  call_center
-  office
-  hallway
-  restricted
-}
-
-enum AnomalyStatus {
-  active
-  resolved
-}
 model Notification {
   id          String      @id @default(uuid())
   type        NotificationType
@@ -183,6 +213,44 @@ model Notification {
 
   @@index([read])
   @@index([createdAt])
+}
+
+model Door{
+  id       String   @id @default(uuid())
+  name      String
+  areaId    String
+  area      Area     @relation(fields: [areaId], references: [id])
+  startX Float
+  startY Float
+  status DoorStatus @default(closed)
+  endX Float
+  endY Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([areaId])
+  DoorAccess DoorAccess[]
+}
+model DoorAccess{
+  id       String   @id @default(uuid())
+  status   AccessStatus @default(pending)
+  doorId    String
+  door      Door     @relation(fields: [doorId], references: [id])
+  userId    String
+  user      user     @relation(fields: [userId], references: [id])
+  accessTime DateTime @default(now())
+
+  @@index([doorId])
+  @@index([userId])
+}
+
+enum AccessStatus{
+  granted
+  pending
+  denied
+}
+enum DoorStatus{
+  open
+  closed
 }
 
 enum NotificationType {
@@ -209,3 +277,21 @@ enum RelatedEntityType {
   ELECTRICITY
   ANOMALY
 }
+enum UserRole {
+  admin
+  employee
+}
+
+enum AreaType {
+  server_room
+  call_center
+  office
+  hallway
+  restricted
+}
+
+enum AnomalyStatus {
+  active
+  resolved
+}
+

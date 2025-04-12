@@ -35,7 +35,7 @@ export class NotificationsController {
   @Sse()
   getNotifications() {
     const stream = this.sseServices.getStream('5');
-    return stream?.pipe();
+    return stream;
   }
 
   @Post(':userId')

@@ -28,4 +28,8 @@ export class RedisService {
   async setWithoutReset(key: string): Promise<void> {
     await this.redisClient.incr(key);
   }
+  async incr(key: string): Promise<number> {
+    const value = await this.redisClient.incr(key);
+    return value;
+  }
 }

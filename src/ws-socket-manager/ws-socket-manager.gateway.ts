@@ -39,7 +39,9 @@ export class WsSocketManagerGateway
         client.disconnect();
         return 'error';
       }
-      const accessTokenPayload = this.jwtService.verify<jwtPayload>(token);
+      const accessTokenPayload = this.jwtService.verify<jwtPayload>(token, {
+        secret: process.env.ACCESS_TOKEN_SECRET,
+      });
       if (!accessTokenPayload) {
         this.logger.error('disconnect due to no accesToken');
         client.disconnect();
@@ -61,6 +63,7 @@ export class WsSocketManagerGateway
     }
   }
   extractTokenFromHandshake(handShake: Handshake) {
+    console.log('handShake', handShake.auth);
     const auth: string = (handShake.auth['token'] ??
       handShake.headers['token']) as string;
     const token = auth?.split(' ')[1] ?? auth;

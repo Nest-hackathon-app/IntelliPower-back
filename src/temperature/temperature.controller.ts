@@ -113,6 +113,7 @@ export class TemperatureController {
   @ApiQuery({
     enum: ['DAY', 'WEEK', 'MONTH'],
   })
+  @Roles('admin')
   @ApiParam({ name: 'floorId', type: 'string' })
   @Get('period/floor/:floorId')
   getTemperatureEntriesPerFloor(
@@ -128,6 +129,7 @@ export class TemperatureController {
   @ApiQuery({
     enum: ['DAY', 'WEEK', 'MONTH'],
   })
+  @Roles('admin')
   @ApiParam({ name: 'areaId', type: 'string' })
   @Get('period/area/:areaId')
   getTemperatureEntriesPerArea(

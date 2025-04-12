@@ -18,9 +18,18 @@ export class NotificationsSseService {
 
       this.userStreams.set(userId, stream);
       stream.subscribe({
-        complete: () => this.userStreams.delete(userId),
+        complete: () => {
+          console.log('Stream completed for user:', userId);
+          this.userStreams.delete(userId);
+        },
       });
     }
+     this.userStreams.get(userId)?.subscribe({
+      complete:()=>{
+        console.log('Stream completed for user:', userId);
+        this.userStreams.delete(userId);
+      }
+    });
     return this.userStreams.get(userId)?.asObservable();
   }
 }

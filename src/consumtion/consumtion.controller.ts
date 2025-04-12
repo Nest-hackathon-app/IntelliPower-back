@@ -38,6 +38,7 @@ export class ConsumtionController {
   create(@Body() createConsumtionDto: CreateConsumtionDto) {
     return this.consumtionService.create(createConsumtionDto);
   }
+  @Roles('admin')
   @Get('period/:floorId')
   @ApiOperation({ summary: 'Get consumtion entries by Floor not grouped' })
   @ApiQuery({
@@ -64,6 +65,7 @@ export class ConsumtionController {
       query.endDate,
     );
   }
+  @Roles('admin')
   @Get('period/area/:areaId')
   @ApiOperation({ summary: 'Get consumtion entries by Area not grouped' })
   @ApiQuery({

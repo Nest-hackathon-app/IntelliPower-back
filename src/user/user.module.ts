@@ -6,7 +6,7 @@ import { jwtGuard } from 'src/auth/guards/jwt.guard';
 
 @Module({
   controllers: [UserController],
-  providers: [UsersService,jwtGuard],
-  exports: [UsersService,jwtGuard],
+  providers: [UsersService, jwtGuard],
+  exports: [UsersService, jwtGuard],
 })
 export class UserModule {}

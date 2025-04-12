@@ -78,7 +78,7 @@ export class AuthController {
   async register(
     @Body() user: CreateUserDto,
     @currentUser() curr: user,
-  ): Promise<LoginResDto> {
+  ): Promise<user> {
     return this.authServices.register(user, curr.companyId);
   }
   @UseGuards(jwtGuard)
