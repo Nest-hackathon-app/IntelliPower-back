@@ -4,9 +4,10 @@ import { AxiosResponse, isAxiosError } from 'axios';
 import * as FormData from 'form-data';
 import { BuzzerService } from 'src/buzzer/buzzer.service';
 import { PrismaService } from 'src/db/prisma.service';
+import { DoorService } from 'src/door/door.service';
 import { RedisService } from 'src/redis/redis.service';
 import { isAggregateError } from 'src/utils/typeGuard/isAggregateError';
-
+import * as NodeWebcam from 'node-webcam';
 export interface FaceRecognitionResponse {
   match: boolean;
 }
@@ -20,12 +21,24 @@ export interface AiResponse {
 }
 @Injectable()
 export class FaceRecoService {
+  webcam = NodeWebcam.create({
+    width: 1280,
+    height: 720,
+    quality: 100,
+    saveShots: true,
+    output: 'jpeg',
+    device: '/dev/video1',
+    callbackReturn: 'base64',
+    verbose: false,
+  });
+
   private readonly LOGIN_ATTEMPTS = 3;
   constructor(
     private readonly http: HttpService,
     private readonly db: PrismaService,
     private readonly redis: RedisService,
     private readonly buzzer: BuzzerService,
+    private readonly doorService: DoorService,
   ) {}
   async processImage(file: Express.Multer.File) {
     const form1 = new FormData();
@@ -51,10 +64,26 @@ export class FaceRecoService {
       }
     }
   }
-
-  async authenticateFace(file: Express.Multer.File, cameraId: string) {
+  async authenticateFace(cameraId: string) {
     try {
-      const base64 = file.buffer.toString('base64');
+      console.log('Starting face recognition process...');
+
+      const base64 = await new Promise<string>((resolve, reject) => {
+        this.webcam.capture('temp', (err, data) => {
+          console.log('Init capture');
+          if (err) {
+            console.error('Error capturing image:', err);
+            return reject(err);
+          }
+          if (typeof data !== 'string') {
+            console.error('Captured data is not a string:', data);
+            return reject(new Error('Captured data is not a string'));
+          }
+          console.log('Captured image data:', data);
+          resolve(data);
+        });
+      });
+
       const url = 'https://b835-41-111-161-82.ngrok-free.app/auth';
       const base64onlyAdmin = await this.db.user.findMany({
         select: {
@@ -83,6 +112,9 @@ export class FaceRecoService {
 
       if (!result) {
         throw new HttpException('No matching face found', 404);
+      }
+      if (result.data.match === true) {
+        return this.doorService.openDoor('door1');
       }
       return {
         match: result.data.match,

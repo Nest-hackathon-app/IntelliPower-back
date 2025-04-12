@@ -80,6 +80,9 @@ importers:
       mqtt:
         specifier: ^5.10.4
         version: 5.10.4
+      node-webcam:
+        specifier: ^0.8.2
+        version: 0.8.2
       passport:
         specifier: ^0.7.0
         version: 0.7.0
@@ -135,6 +138,9 @@ importers:
       '@types/node':
         specifier: ^22.10.7
         version: 22.14.0
+      '@types/node-webcam':
+        specifier: ^0.8.3
+        version: 0.8.3
       '@types/passport-jwt':
         specifier: ^4.0.1
         version: 4.0.1
@@ -1392,6 +1398,9 @@ packages:
   '@types/multer@1.4.12':
     resolution: {integrity: sha512-pQ2hoqvXiJt2FP9WQVLPRO+AmiIm/ZYkavPlIQnx282u4ZrVdztx0pkh3jjpQt0Kz+YI0YhSG264y08UJKoUQg==}
 
+  '@types/node-webcam@0.8.3':
+    resolution: {integrity: sha512-QJDCoysH9Iy4HilS3PFyMubc1C4jTxQPce/ce0oveKp25WSpwBgafSWoCmWV71UQJGS0uwyYIAvq1UEoW9C4yg==}
+
   '@types/node@22.14.0':
     resolution: {integrity: sha512-Kmpl+z84ILoG+3T/zQFyAJsU6EPTmOCj8/2+83fSN6djd6I4o7uOuGIH6vq3PrjY5BGitSbFuMN18j3iknubbA==}
 
@@ -1583,6 +1592,10 @@ packages:
 
   '@xtuc/long@4.2.2':
     resolution: {integrity: sha512-NuHqBY1PB/D8xU6s/thBgOAiAP7HOYDQ32+BFZILJ8ivkUkAHQnWfn6WhL79Owj1qmUnoN/YPhktdIoucipkAQ==}
+
+  abbrev@3.0.1:
+    resolution: {integrity: sha512-AO2ac6pjRB3SJmGJo+v5/aK6Omggp6fsLrs6wN9bd35ulu4cCwaAU9+7ZhXjeqHVkaHThLuzH0nZr0YpCDhygg==}
+    engines: {node: ^18.17.0 || >=20.5.0}
 
   abort-controller@3.0.0:
     resolution: {integrity: sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==}
@@ -3179,6 +3192,15 @@ packages:
 
   node-releases@2.0.19:
     resolution: {integrity: sha512-xxOWJsBKtzAq7DY0J+DTzuz58K8e7sJbdgwkbMWQe8UYB6ekmsQ45q0M/tJDsGaZmbC+l7n57UV8Hl5tHxO9uw==}
+
+  node-webcam@0.8.2:
+    resolution: {integrity: sha512-cuVhDui14Mwc3BfwXMP7EPsrVt1JKns1E5hn/U88ptpdI9c/1M0wQ6nHMcPo+pBrt//kp3h3ZLx12awMdVEXCw==}
+    hasBin: true
+
+  nopt@8.1.0:
+    resolution: {integrity: sha512-ieGu42u/Qsa4TFktmaKEwM6MQH0pOWnaB3htzh0JRtx84+Mebc0cbZYN5bC+6WTZ4+77xrL9Pn5m7CV6VIkV7A==}
+    engines: {node: ^18.17.0 || >=20.5.0}
+    hasBin: true
 
   normalize-path@3.0.0:
     resolution: {integrity: sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==}
@@ -5368,6 +5390,10 @@ snapshots:
     dependencies:
       '@types/express': 5.0.1
 
+  '@types/node-webcam@0.8.3':
+    dependencies:
+      '@types/node': 22.14.0
+
   '@types/node@22.14.0':
     dependencies:
       undici-types: 6.21.0
@@ -5667,6 +5693,8 @@ snapshots:
   '@xtuc/ieee754@1.2.0': {}
 
   '@xtuc/long@4.2.2': {}
+
+  abbrev@3.0.1: {}
 
   abort-controller@3.0.0:
     dependencies:
@@ -7483,6 +7511,14 @@ snapshots:
   node-int64@0.4.0: {}
 
   node-releases@2.0.19: {}
+
+  node-webcam@0.8.2:
+    dependencies:
+      nopt: 8.1.0
+
+  nopt@8.1.0:
+    dependencies:
+      abbrev: 3.0.1
 
   normalize-path@3.0.0: {}
 

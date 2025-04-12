@@ -10,6 +10,7 @@ import { Multer } from 'multer';
 import * as fs from 'fs';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Public } from 'src/auth/decorators/public.decorator';
+import { console } from 'inspector';
 @Controller('face-reco')
 export class FaceRecoController {
   constructor(private readonly faceRecoService: FaceRecoService) {}
@@ -22,14 +23,11 @@ export class FaceRecoController {
   }
   @UseInterceptors(FileInterceptor('image'))
   @Post()
-  async uploadImage(@UploadedFile() file: Express.Multer.File) {
-    const result = await this.faceRecoService.authenticateFace(
-      file,
-      'cameraId',
-    );
-    return result;
-  }
+  async uploadImage(@UploadedFile() file: Express.Multer.File) {}
   @Public()
   @MessagePattern('door/open-request')
-  handleDoorOpenRequest() {}
+  async handleDoorOpenRequest(@Payload() data: { cameraId: string }) {
+    console.log('Received door open request:', data);
+    await this.faceRecoService.authenticateFace(data.cameraId);
+  }
 }
