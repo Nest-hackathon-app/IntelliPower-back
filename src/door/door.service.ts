@@ -40,7 +40,7 @@ export class DoorService {
     this.sendDoorSignal(doorId, doorAction.OPEN);
   }
   async closeDoor(doorId: string) {
-    console.log('Opening door:', doorId);
+    console.log('closing door:', doorId);
 
     await this.prisma.door.update({
       where: {

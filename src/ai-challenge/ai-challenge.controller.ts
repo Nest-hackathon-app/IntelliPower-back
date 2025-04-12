@@ -1,7 +1,17 @@
 import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { AiChallengeService, TrainingScenario } from './ai-challenge.service';
-import { ApiOperation, ApiResponse, ApiTags, ApiBody, ApiParam } from '@nestjs/swagger';
-import { ScenarioResponseDto, GenerateScenarioDto, PerformanceDto } from './dto/scenario.dto';
+import {
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+  ApiBody,
+  ApiParam,
+} from '@nestjs/swagger';
+import {
+  ScenarioResponseDto,
+  GenerateScenarioDto,
+  PerformanceDto,
+} from './dto/scenario.dto';
 
 @ApiTags('AI Security Training')
 @Controller('ai-challenge')
@@ -31,7 +41,6 @@ export class AiChallengeController {
   @ApiResponse({
     status: 201,
     description: 'The training scenario has been successfully generated',
-    type: TrainingScenario,
   })
   async generateScenario(
     @Body('floorPlanId') floorPlanId: string,
@@ -65,7 +74,6 @@ export class AiChallengeController {
   @ApiResponse({
     status: 200,
     description: 'The training scenario details',
-    type: TrainingScenario,
   })
   @ApiResponse({
     status: 404,
@@ -157,7 +165,7 @@ export class AiChallengeController {
     description: 'User performance history',
     type: [PerformanceDto],
   })
-  async getPerformanceHistory(@Param('userId') userId: string): Promise<PerformanceDto[]> {
+  async getPerformanceHistory(@Param('userId') userId: string) {
     return this.aiChallengeService.getPerformanceHistory(userId);
   }
 }
