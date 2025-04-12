@@ -161,8 +161,12 @@ export class FaceRecoService {
                   },
                 },
               )
-              .then((res) => {
-                console.log('API response:', res.data);
+              .then(async (res) => {
+                if (!res.data.match) {
+                  await Promise.reject(
+                    new HttpException('No match found', 404),
+                  );
+                }
                 // Return the response regardless of match status so we can handle it later
                 return res;
               });
@@ -182,24 +186,20 @@ export class FaceRecoService {
           );
         });
 
-        if (!getCOmpanyId?.Area?.floor.companyId){
+        if (!getCOmpanyId?.Area?.floor.companyId) {
           console.error('Company ID not found in camera data');
           throw new HttpException('Company ID not found', 404);
         }
+        console.log(result.data);
         // Check if we got a result and if it's a match
-        if (result.data.match === true) {
+        if (result.data.match) {
           console.log('Face recognized successfully');
           return this.doorService.openDoor(
             cameraId,
             getCOmpanyId?.Area?.floor.companyId,
-            
+
             result.data.auth_id,
           );
-        } else {
-          console.log('No matching face found in results');
-          return {
-            match: false,
-          };
         }
       } catch (error) {
         console.error('Error in face recognition process:', error);

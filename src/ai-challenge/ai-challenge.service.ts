@@ -17,6 +17,7 @@ export interface TrainingScenario {
   }[];
 }
 
+//THIS IS A POC DIDN't USE THE DB
 @Injectable()
 export class AiChallengeService {
   private activeScenarios: Map<string, TrainingScenario> = new Map();
