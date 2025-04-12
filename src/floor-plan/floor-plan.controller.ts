@@ -68,4 +68,11 @@ export class FloorPlanController {
   getFloorPlan(@UploadedFile() file: Express.Multer.File) {
     return this.floorService.getFloorPlan(file);
   }
+  @Get('mock')
+  getMockFloorPlan(){
+    return this.floorService.getMockFloorPlan();
+  }
+
+
+
 }

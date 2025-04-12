@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TemperatureController } from './temperature.controller';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { TemperatureService } from './temperature.service';
+import { HttpWrapperModule } from 'src/http-wrapper/http-wrapper.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { TemperatureService } from './temperature.service';
         },
       },
     ]),
+    HttpWrapperModule
   ],
   controllers: [TemperatureController],
   providers: [TemperatureService],

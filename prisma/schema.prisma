@@ -280,6 +280,7 @@ enum RelatedEntityType {
 enum UserRole {
   admin
   employee
+  security
 }
 
 enum AreaType {

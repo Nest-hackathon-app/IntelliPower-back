@@ -19,6 +19,8 @@ import { EmployeesModule } from './employees/employees.module';
 import { DoorModule } from './door/door.module';
 import { HealthCheckModule } from './health-check/health-check.module';
 import { HttpModule } from '@nestjs/axios';
+import { HttpWrapperModule } from './http-wrapper/http-wrapper.module';
+import { AiChallengeModule } from './ai-challenge/ai-challenge.module';
 
 @Module({
   imports: [
@@ -43,6 +45,8 @@ import { HttpModule } from '@nestjs/axios';
     EmployeesModule,
     DoorModule,
     HealthCheckModule,
+    HttpWrapperModule,
+    AiChallengeModule,
   ],
   providers: [AppService, Reflector],
 })

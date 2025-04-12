@@ -86,8 +86,8 @@ export function mapToFloorPlanData(floor: Floor): FloorPlanData {
     description: floor.name,
     lastUpdated: new Date().toISOString(), // Use floor.updatedAt if available
     dimensions: {
-      width: width > 0 ? width : 20, // Fallback
-      height: height > 0 ? height : 10,
+      width: 10, // Fallback
+      height: 5, // Fallback
     },
     walls,
     doors: [],

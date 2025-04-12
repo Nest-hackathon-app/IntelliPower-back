@@ -12,6 +12,10 @@ export interface GroupedData<T> {
   sum: number;
   count: number;
 }
+export interface AiTemperaturePrediction {
+  temperature: number;
+  humidity: number;
+}
 
 @Injectable()
 export class TemperatureService {
@@ -94,18 +98,20 @@ export class TemperatureService {
       where: { id: sensorId },
       include: { area: { include: { floor: true } } },
     });
-    const aiPrediction = await this.httpService.axiosRef.post(
-      process.env.PYTHON_BASE_URL + '/predict',
-      {
-        sensor: predictionBody,
-        createdAt: now,
-      },
-    );
+    const aiPrediction =
+      await this.httpService.axiosRef.post<AiTemperaturePrediction>(
+        process.env.PYTHON_BASE_URL + '/predict',
+        {
+          sensor: predictionBody,
+          createdAt: now,
+        },
+      );
     return this.prisma.temperature.create({
       data: {
         temp: temperature,
         humidity,
-        
+        aiPrediction: aiPrediction.data.temperature,
+        aiHumidityPrediction: aiPrediction.data.humidity,
         sensor: {
           connect: {
             id: sensorId,
@@ -240,5 +246,8 @@ export class TemperatureService {
     });
 
     return temperature;
+  }
+  getAiPredictionOfLast24HoursOfFloor(){
+    
   }
 }

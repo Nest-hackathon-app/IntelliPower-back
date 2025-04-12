@@ -6,6 +6,8 @@ import { AreaResponseDto, FloorResponseDto } from './dto/floor-response.dto';
 import { HttpService } from '@nestjs/axios';
 import * as FormData from 'form-data';
 import { tap } from 'rxjs';
+import { mapToFloorPlanData } from 'src/utils/flat.util';
+import { sampleFloor } from 'src/seeders/data/rack.data';
 export interface AiReturnResponse {
   output: string;
 }
@@ -106,6 +108,9 @@ export class FloorPlanService {
     const cleanedText = json.replace(/^```json\s*/i, '').replace(/```$/, '');
 
     return JSON.parse(cleanedText);
+  }
+  getMockFloorPlan(){
+    return mapToFloorPlanData(sampleFloor); 
   }
  
 
