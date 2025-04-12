@@ -27,7 +27,7 @@ export class FaceRecoService {
     quality: 100,
     saveShots: true,
     output: 'jpeg',
-    device: '/dev/video1',
+    device: '/dev/video0',
     callbackReturn: 'base64',
     verbose: false,
   });
@@ -47,8 +47,7 @@ export class FaceRecoService {
       contentType: file.mimetype,
     });
     try {
-      const url =
-        'https://b835-41-111-161-82.ngrok-free.app/analyze_face_and_emotion';
+      const url = 'http://10.42.0.109:8000/auth';
       const res = await this.http.axiosRef.post<AiResponse>(url, form1, {
         headers: {
           ...form1.getHeaders(),
@@ -67,7 +66,6 @@ export class FaceRecoService {
   async authenticateFace(cameraId: string) {
     try {
       console.log('Starting face recognition process...');
-
       const base64 = await new Promise<string>((resolve, reject) => {
         this.webcam.capture('temp', (err, data) => {
           console.log('Init capture');
@@ -79,48 +77,100 @@ export class FaceRecoService {
             console.error('Captured data is not a string:', data);
             return reject(new Error('Captured data is not a string'));
           }
-          console.log('Captured image data:', data);
           resolve(data);
         });
       });
 
-      const url = 'https://b835-41-111-161-82.ngrok-free.app/auth';
-      const base64onlyAdmin = await this.db.user.findMany({
+      // Log the length of captured base64 to verify it's not empty
+      console.log('Captured base64 length:', base64.length);
+
+      const cleanedBase64 = base64.replace(/^data:image\/[a-z]+;base64,/, '');
+      const url = 'http://10.42.0.109:8000/auth';
+
+      // Fetch admin images from database
+      const adminUsers = await this.db.user.findMany({
         select: {
           image: true,
         },
+        where: {
+          image: {
+            not: null,
+          },
+        },
       });
-      const result = await Promise.any<AxiosResponse<FaceRecognitionResponse>>(
-        base64onlyAdmin.map(async (admin) => {
-          return new Promise((resolve, reject) => {
-            this.http.axiosRef
-              .post<FaceRecognitionResponse>(url, {
-                expected_image_base64: admin.image,
-                auth_image_base64: base64,
-              })
-              .then((res) => {
-                if (res.data.match === true) {
-                  resolve(res);
-                }
-              })
-              .catch((err) => {
-                reject(new Error('Error during face recognition: ' + err));
-              });
-          });
-        }),
-      );
 
-      if (!result) {
-        throw new HttpException('No matching face found', 404);
+      if (adminUsers.length === 0) {
+        console.log('No admin users found in database');
+        throw new HttpException('No admin users found', 404);
       }
-      if (result.data.match === true) {
-        return this.doorService.openDoor('door1');
+
+      console.log(`Found ${adminUsers.length} admin users to compare against`);
+
+      try {
+        // Modify the Promise.any implementation to properly handle rejections and matches
+        const result = await Promise.any(
+          adminUsers.map(async (admin) => {
+            // Ensure admin image exists and has content
+            if (!admin.image || admin.image.length === 0) {
+              return Promise.reject(
+                new Error('Empty reference image found in database'),
+              );
+            }
+
+            console.log('Sending comparison request to API');
+
+            return this.http.axiosRef
+              .post<FaceRecognitionResponse>(
+                url,
+                {
+                  expected_image_base64: admin.image,
+                  auth_image_base64: cleanedBase64,
+                },
+                {
+                  headers: {
+                    'Content-Type': 'application/json', // Fixed header name
+                  },
+                },
+              )
+              .then((res) => {
+                console.log('API response:', res.data);
+                // Return the response regardless of match status so we can handle it later
+                return res;
+              });
+          }),
+        ).catch((err) => {
+          console.error('All face recognition attempts failed:', err);
+
+          // If it's an AggregateError, log the specific errors
+          if (err instanceof AggregateError && err.errors) {
+            err.errors.forEach((e, i) => {
+              console.error(`Error ${i + 1}:`, e.message);
+            });
+          }
+
+          throw new HttpException(
+            'Face recognition failed: No matches found',
+            401,
+          );
+        });
+
+        // Check if we got a result and if it's a match
+        if (result && result.data && result.data.match === true) {
+          console.log('Face recognized successfully');
+          return this.doorService.openDoor(cameraId);
+        } else {
+          console.log('No matching face found in results');
+          return {
+            match: false,
+          };
+        }
+      } catch (error) {
+        console.error('Error in face recognition process:', error);
+        throw new HttpException('Face recognition process failed', 500);
       }
-      return {
-        match: result.data.match,
-      };
     } catch (error) {
       if (isAggregateError(error)) {
+        console.error('Aggregate error:', error);
         await this.subtractTry(cameraId);
       }
     }

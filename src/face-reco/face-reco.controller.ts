@@ -26,8 +26,8 @@ export class FaceRecoController {
   async uploadImage(@UploadedFile() file: Express.Multer.File) {}
   @Public()
   @MessagePattern('door/open-request')
-  async handleDoorOpenRequest(@Payload() data: { cameraId: string }) {
+  handleDoorOpenRequest(@Payload() data: { cameraId: string }) {
+    console.log('Received door open request:');
     console.log('Received door open request:', data);
-    await this.faceRecoService.authenticateFace(data.cameraId);
   }
 }

@@ -13,7 +13,7 @@ export interface GroupedData<T> {
   count: number;
 }
 export interface AiTemperaturePrediction {
-  temperature: number;
+  predicted_temperature: number;
   humidity: number;
 }
 
@@ -100,18 +100,21 @@ export class TemperatureService {
     });
     const aiPrediction =
       await this.httpService.axiosRef.post<AiTemperaturePrediction>(
-        process.env.PYTHON_BASE_URL + '/predict',
+        process.env.PYTHON_BASE_URL + '/temp_prediction',
         {
+          id:sensorId,
+          sensorId,
           sensor: predictionBody,
           createdAt: now,
+          humidity,
         },
       );
     return this.prisma.temperature.create({
       data: {
         temp: temperature,
         humidity,
-        aiPrediction: aiPrediction.data.temperature,
-        aiHumidityPrediction: aiPrediction.data.humidity,
+        aiPrediction: aiPrediction.data.predicted_temperature[0],
+        aiHumidityPrediction: aiPrediction.data.humidity??0,
         sensor: {
           connect: {
             id: sensorId,

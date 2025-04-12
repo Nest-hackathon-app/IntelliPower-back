@@ -15,13 +15,14 @@ export class DoorService {
     private readonly prisma: PrismaService,
   ) {}
   sendDoorSignal(doorId: string, action: doorAction) {
-    this.pub.emit('door-control', {
+    this.pub.emit('servo/control', {
       doorId,
       action,
     });
     return 'Door control signal sent';
   }
   async openDoor(doorId: string) {
+    console.log('Opening door:', doorId);
     await this.prisma.door.update({
       where: {
         id: doorId,
@@ -33,6 +34,8 @@ export class DoorService {
     this.sendDoorSignal(doorId, doorAction.OPEN);
   }
   async closeDoor(doorId: string) {
+    console.log('Opening door:', doorId);
+
     await this.prisma.door.update({
       where: {
         id: doorId,
@@ -43,6 +46,7 @@ export class DoorService {
     });
     this.sendDoorSignal(doorId, doorAction.CLOSE);
   }
+
   async getFloorDoors(floorId: string) {
     const res = await this.prisma.door.findMany({
       where: {
