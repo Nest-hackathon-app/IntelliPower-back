@@ -10,6 +10,7 @@ import { isAggregateError } from 'src/utils/typeGuard/isAggregateError';
 import * as NodeWebcam from 'node-webcam';
 export interface FaceRecognitionResponse {
   match: boolean;
+  auth_id: string;
 }
 export interface EmotionRecognitionResponse {
   anger: number;
@@ -21,6 +22,16 @@ export interface AiResponse {
 }
 @Injectable()
 export class FaceRecoService {
+  closeDoor(cameraId: string) {
+    return this.db.door.update({
+      where: {
+        id: cameraId,
+      },
+      data: {
+        status: 'closed',
+      },
+    });
+  }
   webcam = NodeWebcam.create({
     width: 1280,
     height: 720,
@@ -91,6 +102,7 @@ export class FaceRecoService {
       const adminUsers = await this.db.user.findMany({
         select: {
           image: true,
+          id: true,
         },
         where: {
           image: {
@@ -99,6 +111,22 @@ export class FaceRecoService {
         },
       });
 
+      const getCOmpanyId = await this.db.camera.findUnique({
+        where: {
+          id: cameraId,
+        },
+        select: {
+          Area: {
+            select: {
+              floor: {
+                select: {
+                  companyId: true,
+                },
+              },
+            },
+          },
+        },
+      });
       if (adminUsers.length === 0) {
         console.log('No admin users found in database');
         throw new HttpException('No admin users found', 404);
@@ -125,6 +153,7 @@ export class FaceRecoService {
                 {
                   expected_image_base64: admin.image,
                   auth_image_base64: cleanedBase64,
+                  auth_id: admin.id,
                 },
                 {
                   headers: {
@@ -147,17 +176,25 @@ export class FaceRecoService {
               console.error(`Error ${i + 1}:`, e.message);
             });
           }
-
           throw new HttpException(
             'Face recognition failed: No matches found',
             401,
           );
         });
 
+        if (!getCOmpanyId?.Area?.floor.companyId){
+          console.error('Company ID not found in camera data');
+          throw new HttpException('Company ID not found', 404);
+        }
         // Check if we got a result and if it's a match
-        if (result && result.data && result.data.match === true) {
+        if (result.data.match === true) {
           console.log('Face recognized successfully');
-          return this.doorService.openDoor(cameraId);
+          return this.doorService.openDoor(
+            cameraId,
+            getCOmpanyId?.Area?.floor.companyId,
+            
+            result.data.auth_id,
+          );
         } else {
           console.log('No matching face found in results');
           return {

@@ -3,6 +3,9 @@ import { TemperatureController } from './temperature.controller';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { TemperatureService } from './temperature.service';
 import { HttpWrapperModule } from 'src/http-wrapper/http-wrapper.module';
+import { FaceRecoService } from 'src/face-reco/face-reco.service';
+import { FaceRecoModule } from 'src/face-reco/face-reco.module';
+import { DoorModule } from 'src/door/door.module';
 
 @Module({
   imports: [
@@ -16,7 +19,10 @@ import { HttpWrapperModule } from 'src/http-wrapper/http-wrapper.module';
         },
       },
     ]),
-    HttpWrapperModule
+    FaceRecoModule,
+    HttpWrapperModule,
+    DoorModule,
+
   ],
   controllers: [TemperatureController],
   providers: [TemperatureService],

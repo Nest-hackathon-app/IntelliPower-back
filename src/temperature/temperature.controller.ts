@@ -27,12 +27,16 @@ import { Roles } from 'src/auth/decorators/userRole.decorator';
 import { jwtGuard } from 'src/auth/guards/jwt.guard';
 import { RoleGuard } from 'src/auth/guards/role.guard';
 import { Public } from 'src/auth/decorators/public.decorator';
+import { FaceRecoService } from 'src/face-reco/face-reco.service';
 
 @UseGuards(jwtGuard, RoleGuard)
 @Controller('temperature')
 export class TemperatureController {
   logger = new Logger(TemperatureController.name);
-  constructor(private readonly temperatureService: TemperatureService) {}
+  constructor(
+    private readonly temperatureService: TemperatureService,
+    private readonly face: FaceRecoService,
+  ) {}
   @ApiOperation({ summary: 'Get temperature entries by floor' })
   @ApiQuery({ name: 'groupBy', required: false, enum: groupBy })
   @ApiQuery({
@@ -80,6 +84,13 @@ export class TemperatureController {
   }
 
   @Public()
+  @MessagePattern('door/open-request')
+  async handleDoorOpenRequest(@Payload() data: { cameraId: string }) {
+    console.log('Received door open request with payload:',data);
+    console.log('Received door open request:',data.cameraId);
+    return await this.face.authenticateFace(data.cameraId);
+  }
+  @Public()
   @MessagePattern('temperature/entry')
   addTemperatureEntry(
     @Payload()
@@ -89,6 +100,7 @@ export class TemperatureController {
       humidity: number;
     },
   ) {
+    console.log('Received temperature entry:', data);
     if (!data.sensorId || !data.temperature) {
       this.logger.error('Invalid data entry from sensor + ' + data.sensorId);
       return;

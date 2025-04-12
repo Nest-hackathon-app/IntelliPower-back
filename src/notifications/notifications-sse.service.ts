@@ -6,7 +6,7 @@ export class NotificationsSseService {
   private userStreams = new Map<string, Subject<MessageEvent>>();
   sendToClient(userId: string, data: MessageEvent) {
     console.log('User joined stream:', userId);
-    const stream = this.userStreams.get(userId);
+    const stream = this.userStreams.get('5');
     if (stream) {
       stream.next(data);
     }

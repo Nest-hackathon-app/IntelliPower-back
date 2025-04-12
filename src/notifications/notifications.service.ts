@@ -12,7 +12,8 @@ export class NotificationsService {
     private readonly prisma: PrismaService,
   ) {}
 
-  addNotification(userId: string, notification: createNotificationDto) {
+  addNotification(companyId: string, notification: createNotificationDto) {
+
     // const noty = await this.prisma.notification.create({
     //   data: {
     //     ...notification,
@@ -21,8 +22,8 @@ export class NotificationsService {
     //     },
     //   },
     // });
-    this.sseService.sendToClient(userId, {
-      data: 'رح تسمع بزاف وش دخلك اليوم',
+    this.sseService.sendToClient('5', {
+      data: notification.title,
       type: 'Notification',
     });
   }
