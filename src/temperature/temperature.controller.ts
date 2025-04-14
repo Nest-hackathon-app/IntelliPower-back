@@ -86,8 +86,8 @@ export class TemperatureController {
   @Public()
   @MessagePattern('door/open-request')
   async handleDoorOpenRequest(@Payload() data: { cameraId: string }) {
-    console.log('Received door open request with payload:',data);
-    console.log('Received door open request:',data.cameraId);
+    console.log('Received door open request with payload:', data);
+    console.log('Received door open request:', data.cameraId);
     return await this.face.authenticateFace(data.cameraId);
   }
   @Public()
@@ -103,7 +103,8 @@ export class TemperatureController {
     console.log('Received temperature entry:', data);
     if (!data.sensorId || !data.temperature) {
       this.logger.error('Invalid data entry from sensor + ' + data.sensorId);
-      return;
+      //NOTE iot didn't send sensorId (fallback to mock sensor)
+      data.sensorId = 'sensor-1';
     }
 
     this.logger.log('Adding temperature entry from sensor ' + data.sensorId);

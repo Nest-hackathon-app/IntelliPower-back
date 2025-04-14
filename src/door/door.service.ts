@@ -24,7 +24,7 @@ export class DoorService {
     console.log('Opening door:', doorId);
     this.notificationService.addNotification(userId, {
       type: 'SYSTEM_ALERT',
-      title: 'Door Opened',
+      title: 'Door Opened by '+userId,
       message: 'Door opened successfully By '+userId,
       roles: ['admin'],
       priority: 'low',
