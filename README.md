@@ -9,6 +9,7 @@ The **Smart Facility Assistant (SFA)** is an intelligent IoT and AI-powered syst
 - 📹 Camera Optimization: Suggests optimal camera placement and detects blind spots.
 - 🗺️ Interactive 2D Map: Upload facility images to auto-generate interactive layouts.
 - 💡 AI Recommendations: Energy-saving and security tips based on real-time data.
+- 🎮 Gamified Experience: Let company test their system agains a an AI opponent, and save logs for later and give ai Recommendations.(Not implemented Fully yet)
 
 ## 🧱 Tech Stack
 
