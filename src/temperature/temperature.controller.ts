@@ -83,14 +83,7 @@ export class TemperatureController {
     return this.temperatureService.getTemperatureData(query, areaId);
   }
 
-  @Public()
-  @MessagePattern('door/open-request')
-  async handleDoorOpenRequest(@Payload() data: { cameraId: string }) {
-    console.log('Received door open request with payload:', data);
-    console.log('Received door open request:', data.cameraId);
-    return await this.face.authenticateFace(data.cameraId);
-  }
-  @Public()
+   @Public()
   @MessagePattern('temperature/entry')
   addTemperatureEntry(
     @Payload()

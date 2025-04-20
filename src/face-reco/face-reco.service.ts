@@ -96,7 +96,7 @@ export class FaceRecoService {
       console.log('Captured base64 length:', base64.length);
 
       const cleanedBase64 = base64.replace(/^data:image\/[a-z]+;base64,/, '');
-      const url = 'http://10.42.0.109:8000/auth';
+      const url = `${process.env.PYTHON_BASE_URL}/auth`;
 
       // Fetch admin images from database
       const adminUsers = await this.db.user.findMany({

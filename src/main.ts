@@ -31,8 +31,8 @@ async function bootstrap() {
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.MQTT, // or Transport.REDIS, Transport.KAFKA, etc.
     options: {
-      host: 'localhost',
-      port: 1883,
+      host: process.env.MQTT_HOST,
+      port: Number(process.env.MQTT_PORT),
     },
   });
   await app.startAllMicroservices();

@@ -7,9 +7,9 @@ export class RedisService {
 
   constructor() {
     this.redisClient = new Redis({
-      host: 'localhost',
-      port: 6379,
-      db: 0,
+      host: process.env.REDIS_HOST || 'localhost',
+      port: Number(process.env.REDIS_PORT) || 6379,
+      db: Number(process.env.REDIS_DB) || 0,
     });
   }
   async setWithTtl<T>(key: string, value: T, ttl: number): Promise<void> {

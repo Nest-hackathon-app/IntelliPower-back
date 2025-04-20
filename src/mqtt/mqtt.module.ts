@@ -9,8 +9,8 @@ import { MQTT_PUBLISHER } from 'src/utils/constants';
         name: MQTT_PUBLISHER,
         transport: Transport.MQTT,
         options: {
-          host: 'localhost',
-          port: 1883,
+          host: process.env.MQTT_HOST,
+          port: Number(process.env.MQTT_PORT),
         },
       },
     ]),
