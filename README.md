@@ -14,7 +14,7 @@ The **Smart Facility Assistant (SFA)** is an intelligent IoT and AI-powered syst
 
 - **NestJS** for backend architecture
 - **MQTT** for IoT sensor communication
-- **Redis** and **gRPC** for inter-service messaging
+- **Redis**  for inter-service messaging
 - **PostgreSQL** for data persistence
 - **Docker** for containerized deployment
 
